@@ -1,0 +1,135 @@
+.dashboard-hero {
+  position: relative;
+  padding: 2.5rem 2rem;
+  margin-bottom: var(--space-xl);
+  border-radius: var(--radius-xl);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(6, 182, 212, 0.05));
+  border: 1px solid var(--border-primary);
+  overflow: hidden;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-greeting {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.hero-icon {
+  color: var(--accent-yellow);
+}
+
+.hero-title {
+  font-size: var(--font-4xl);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin-bottom: 0.5rem;
+}
+
+.hero-subtitle {
+  font-size: var(--font-base);
+  color: var(--text-secondary);
+  max-width: 500px;
+  line-height: 1.6;
+}
+
+.hero-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-purple);
+  opacity: 0.3;
+}
+
+/* Section Grid */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-md);
+}
+
+.section-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  text-decoration: none;
+  color: var(--text-primary);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.section-card:hover {
+  transform: translateY(-2px);
+}
+
+.section-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform var(--transition-base);
+}
+
+.section-card:hover .section-card-icon {
+  transform: scale(1.1);
+}
+
+.section-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.section-card-info h3 {
+  font-size: var(--font-md);
+  font-weight: 700;
+  margin-bottom: 0.1rem;
+}
+
+.section-card-info p {
+  font-size: var(--font-xs);
+  color: var(--text-tertiary);
+}
+
+.section-card-arrow {
+  color: var(--text-muted);
+  transition: all var(--transition-fast);
+}
+
+.section-card:hover .section-card-arrow {
+  color: var(--text-primary);
+  transform: translateX(4px);
+}
+
+.section-card-glow {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  opacity: 0;
+  transition: opacity var(--transition-base);
+}
+
+.section-card:hover .section-card-glow {
+  opacity: 1;
+}
