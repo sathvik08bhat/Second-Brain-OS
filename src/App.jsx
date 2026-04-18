@@ -100,6 +100,7 @@ import TravelHistory from './pages/travel/TravelHistory';
 
 // Settings
 import GoogleIntegration from './pages/settings/GoogleIntegration';
+import CalendarPage from './pages/settings/CalendarPage';
 
 import './App.css';
 
@@ -124,6 +125,7 @@ function AppContent() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/inbox" element={<QuickCapture />} />
             <Route path="/tasks" element={<TasksPage />} />
+            <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/google-sync" element={<GoogleIntegration />} />
 
             {/* Academics */}

@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   GraduationCap, Code2, BarChart3, Briefcase, Rocket, Users,
   Dumbbell, Brain, Palette, Plane, ArrowRight, Zap, TrendingUp,
-  Wallet, Heart, Shield, CheckCircle, Plus, Cpu
+  Wallet, Heart, Shield, CheckCircle, Plus, Cpu, Calendar, ListTodo, Clock
 } from 'lucide-react';
 import PageWrapper from '../components/layout/PageWrapper';
 import StatsCard from '../components/shared/StatsCard';
@@ -16,6 +16,7 @@ import { useGsocStore } from '../store/gsocStore';
 import { useCatStore } from '../store/catStore';
 import { useTaskStore, TASK_CATEGORIES } from '../store/taskStore';
 import { useFinanceStore } from '../store/financeStore';
+import { useGoogleStore } from '../store/googleStore';
 import { getGreeting } from '../utils/helpers';
 import './Dashboard.css';
 
@@ -245,6 +246,9 @@ export default function Dashboard() {
         <DashboardTaskTracker />
       </motion.div>
 
+      {/* Google Calendar & Tasks Overview */}
+      <DashboardCalendarWidget />
+
       {/* Section Grid */}
       <div className="section-title" style={{ marginBottom: 'var(--space-lg)' }}>
         <Zap size={18} />
@@ -275,5 +279,100 @@ export default function Dashboard() {
         ))}
       </motion.div>
     </PageWrapper>
+  );
+}
+
+function DashboardCalendarWidget() {
+  const { isAuthenticated, isTokenValid, calendarEvents, googleTasks, fetchCalendarEvents, fetchGoogleTasks } = useGoogleStore();
+  const [loaded, setLoaded] = useState(false);
+
+  const isReady = isAuthenticated && isTokenValid();
+
+  useEffect(() => {
+    if (isReady && !loaded) {
+      Promise.all([fetchCalendarEvents(), fetchGoogleTasks()]).then(() => setLoaded(true)).catch(() => {});
+    }
+  }, [isReady]);
+
+  const now = new Date();
+  const upcomingEvents = calendarEvents
+    .filter(e => new Date(e.start) >= new Date(now.getFullYear(), now.getMonth(), now.getDate()))
+    .slice(0, 4);
+  const pendingTasks = googleTasks.filter(t => !t.completed).slice(0, 4);
+
+  const formatTime = (s) => {
+    if (!s || s.length <= 10) return 'All day';
+    return new Date(s).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+  };
+
+  return (
+    <>
+      <div className="section-title" style={{ marginBottom: 'var(--space-md)' }}>
+        <Calendar size={18} /> Calendar & Tasks
+        <Link to="/calendar" style={{ marginLeft: 'auto', fontSize: 'var(--font-xs)', color: 'var(--accent-purple-light)' }}>
+          {isReady ? 'View Full Calendar →' : 'Connect Google →'}
+        </Link>
+      </div>
+      {!isReady ? (
+        <motion.div className="glass-card" style={{ padding: '2rem', textAlign: 'center', marginBottom: 'var(--space-xl)' }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <Calendar size={32} style={{ color: 'var(--text-muted)', marginBottom: '1rem', opacity: 0.5 }} />
+          <div style={{ fontWeight: 600, marginBottom: '0.5rem', color: 'var(--text-primary)' }}>Google Calendar & Tasks Not Connected</div>
+          <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)', marginBottom: '1rem' }}>Connect your account to see upcoming events and tasks here.</div>
+          <Link to="/google-sync" className="btn-secondary" style={{ display: 'inline-flex', fontSize: 'var(--font-xs)', padding: '0.4rem 0.8rem' }}>
+            Connect Now
+          </Link>
+        </motion.div>
+      ) : (
+        <motion.div
+          style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)', marginBottom: 'var(--space-xl)' }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          {/* Upcoming Events */}
+          <div className="glass-card" style={{ overflow: 'hidden' }}>
+            <div style={{ padding: '0.75rem 1rem', borderBottom: '2px solid var(--border-primary)', fontWeight: 700, fontSize: 'var(--font-sm)', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Calendar size={14} style={{ color: '#8b5cf6' }} /> Upcoming Events
+            </div>
+            {upcomingEvents.length === 0 ? (
+              <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 'var(--font-xs)' }}>No upcoming events</div>
+            ) : (
+              upcomingEvents.map(ev => (
+                <div key={ev.id} style={{ padding: '0.6rem 1rem', borderBottom: '1px solid var(--border-primary)', display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+                  <div style={{ width: 3, minHeight: 28, borderRadius: 2, background: '#8b5cf6', flexShrink: 0, marginTop: 2 }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, fontSize: 'var(--font-xs)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ev.title}</div>
+                    <div style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 3 }}>
+                      <Clock size={9} />
+                      {new Date(ev.start).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} · {formatTime(ev.start)}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Google Tasks */}
+          <div className="glass-card" style={{ overflow: 'hidden' }}>
+            <div style={{ padding: '0.75rem 1rem', borderBottom: '2px solid var(--border-primary)', fontWeight: 700, fontSize: 'var(--font-sm)', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <ListTodo size={14} style={{ color: '#10b981' }} /> Google Tasks
+            </div>
+            {pendingTasks.length === 0 ? (
+              <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--accent-green)', fontSize: 'var(--font-xs)', fontWeight: 600 }}>All caught up! 🎉</div>
+            ) : (
+              pendingTasks.map(t => (
+                <div key={t.id} style={{ padding: '0.6rem 1rem', borderBottom: '1px solid var(--border-primary)', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', border: '2px solid #f59e0b', flexShrink: 0 }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, fontSize: 'var(--font-xs)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</div>
+                    {t.due && <div style={{ fontSize: '10px', color: new Date(t.due) < new Date() ? 'var(--accent-red)' : 'var(--text-muted)' }}>{new Date(t.due).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</div>}
+                  </div>
+                  <span className="badge badge-blue" style={{ fontSize: '8px' }}>{t.listName}</span>
+                </div>
+              ))
+            )}
+          </div>
+        </motion.div>
+      )}
+    </>
   );
 }

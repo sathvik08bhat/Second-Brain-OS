@@ -755,3 +755,32 @@ select option {
 .tooltip:hover::after {
   opacity: 1;
 }
+
+/* ── Utility Animations ── */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* ── Chip ── */
+.chip {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* ── Calendar responsive ── */
+@media (max-width: 900px) {
+  .calendar-layout {
+    grid-template-columns: 1fr !important;
+  }
+}

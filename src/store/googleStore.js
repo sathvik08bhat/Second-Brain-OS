@@ -6,7 +6,7 @@ import { persist } from 'zustand/middleware';
 // https://console.cloud.google.com/apis/credentials
 // ─────────────────────────────────────────────────
 const GOOGLE_CLIENT_ID = '535881900428-smoieu90ov1ejv0kupbtj027rij7kvfs.apps.googleusercontent.com';
-const SCOPES = 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/tasks';
+const SCOPES = 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/tasks';
 
 export const useGoogleStore = create(
   persist(
@@ -15,6 +15,9 @@ export const useGoogleStore = create(
       accessToken: null,
       userEmail: null,
       tokenExpiry: null,
+      calendarEvents: [],
+      googleTasks: [],
+      lastFetched: null,
       syncPreferences: {
         autoSyncTasks: false,
         autoSyncAiml: false,
@@ -69,6 +72,8 @@ export const useGoogleStore = create(
           accessToken: null,
           userEmail: null,
           tokenExpiry: null,
+          calendarEvents: [],
+          googleTasks: [],
         });
       },
 
@@ -80,6 +85,93 @@ export const useGoogleStore = create(
       setSyncPreference: (key, value) => set((s) => ({
         syncPreferences: { ...s.syncPreferences, [key]: value }
       })),
+
+      // ── Fetch Calendar Events ──
+      fetchCalendarEvents: async (timeMin, timeMax) => {
+        const { accessToken, isTokenValid } = get();
+        if (!isTokenValid()) throw new Error('Not authenticated');
+
+        const now = new Date();
+        const min = timeMin || new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+        const max = timeMax || new Date(now.getFullYear(), now.getMonth() + 2, 0).toISOString();
+
+        const params = new URLSearchParams({
+          timeMin: min,
+          timeMax: max,
+          singleEvents: 'true',
+          orderBy: 'startTime',
+          maxResults: '100',
+        });
+
+        const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?${params}`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error?.message || 'Failed to fetch events');
+        }
+
+        const data = await res.json();
+        const events = (data.items || []).map(e => ({
+          id: e.id,
+          title: e.summary || '(No title)',
+          description: e.description || '',
+          start: e.start?.dateTime || e.start?.date || '',
+          end: e.end?.dateTime || e.end?.date || '',
+          allDay: !e.start?.dateTime,
+          color: e.colorId || null,
+          htmlLink: e.htmlLink,
+          status: e.status,
+        }));
+
+        set({ calendarEvents: events, lastFetched: Date.now() });
+        return events;
+      },
+
+      // ── Fetch Google Tasks ──
+      fetchGoogleTasks: async () => {
+        const { accessToken, isTokenValid } = get();
+        if (!isTokenValid()) throw new Error('Not authenticated');
+
+        const listsRes = await fetch('https://www.googleapis.com/tasks/v1/users/@me/lists', {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        const listsData = await listsRes.json();
+        const lists = listsData.items || [];
+
+        let allTasks = [];
+        for (const list of lists) {
+          const res = await fetch(`https://www.googleapis.com/tasks/v1/lists/${list.id}/tasks?maxResults=100&showCompleted=true`, {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          });
+          if (!res.ok) continue;
+          const data = await res.json();
+          const tasks = (data.items || []).map(t => ({
+            id: t.id,
+            listId: list.id,
+            listName: list.title,
+            title: t.title || '(No title)',
+            notes: t.notes || '',
+            due: t.due || null,
+            status: t.status, // 'needsAction' or 'completed'
+            completed: t.status === 'completed',
+            updated: t.updated,
+          }));
+          allTasks = [...allTasks, ...tasks];
+        }
+
+        // Sort: incomplete first, then by due date
+        allTasks.sort((a, b) => {
+          if (a.completed !== b.completed) return a.completed ? 1 : -1;
+          if (a.due && b.due) return new Date(a.due) - new Date(b.due);
+          if (a.due) return -1;
+          return 1;
+        });
+
+        set({ googleTasks: allTasks, lastFetched: Date.now() });
+        return allTasks;
+      },
 
       // ── Google Calendar ──
       createCalendarEvent: async ({ title, description, startDate, endDate, colorId }) => {
@@ -103,7 +195,7 @@ export const useGoogleStore = create(
             useDefault: false,
             overrides: [
               { method: 'popup', minutes: 30 },
-              { method: 'popup', minutes: 1440 }, // 1 day
+              { method: 'popup', minutes: 1440 },
             ],
           },
         };
@@ -142,7 +234,6 @@ export const useGoogleStore = create(
         const { accessToken, isTokenValid } = get();
         if (!isTokenValid()) throw new Error('Not authenticated');
 
-        // Get default task list
         const listsRes = await fetch('https://www.googleapis.com/tasks/v1/users/@me/lists', {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
@@ -177,11 +268,9 @@ export const useGoogleStore = create(
         return res.json();
       },
 
-      completeGoogleTask: async (taskListId, taskId) => {
+      toggleGoogleTaskComplete: async (listId, taskId, currentlyCompleted) => {
         const { accessToken, isTokenValid } = get();
         if (!isTokenValid()) throw new Error('Not authenticated');
-
-        const listId = taskListId || (await get().getDefaultTaskListId());
 
         await fetch(`https://www.googleapis.com/tasks/v1/lists/${listId}/tasks/${taskId}`, {
           method: 'PATCH',
@@ -189,8 +278,11 @@ export const useGoogleStore = create(
             Authorization: `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ status: 'completed' }),
+          body: JSON.stringify({ status: currentlyCompleted ? 'needsAction' : 'completed' }),
         });
+
+        // Refresh tasks after toggle
+        await get().fetchGoogleTasks();
       },
 
       getDefaultTaskListId: async () => {

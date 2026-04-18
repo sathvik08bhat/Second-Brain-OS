@@ -5,7 +5,7 @@ import {
   LayoutDashboard, GraduationCap, Code2, BarChart3, Rocket,
   Briefcase, Users, Dumbbell, Brain, Palette, Plane,
   ChevronLeft, ChevronRight, ChevronDown, Zap, Inbox, Sun, Moon,
-  CheckCircle, Wallet, Heart, Shield, Cpu, Link2
+  CheckCircle, Wallet, Heart, Shield, Cpu, Link2, CalendarDays
 } from 'lucide-react';
 import { useGlobalStore } from '../../store/globalStore';
 import './Sidebar.css';
@@ -17,6 +17,7 @@ const navSections = [
       { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
       { path: '/inbox', icon: Inbox, label: 'Quick Capture' },
       { path: '/tasks', icon: CheckCircle, label: 'Task Tracker' },
+      { path: '/calendar', icon: CalendarDays, label: 'Calendar & Tasks' },
       { path: '/google-sync', icon: Link2, label: 'Google Sync' },
     ]
   },
