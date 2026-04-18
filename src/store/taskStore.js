@@ -20,9 +20,12 @@ export const useTaskStore = create(
           category: 'personal',
           priority: 'medium',
           dueDate: null,
+          deadline: null,
           description: '',
           subtasks: [],
           linkedTransactionId: null,
+          googleCalendarEventId: null,
+          googleTaskId: null,
           tags: [],
           status: 'todo', // todo, in-progress, done
           ...task

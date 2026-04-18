@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import {
   GraduationCap, Code2, BarChart3, Briefcase, Rocket, Users,
   Dumbbell, Brain, Palette, Plane, ArrowRight, Zap, TrendingUp,
-  Wallet, Heart, Shield, CheckCircle, Plus
+  Wallet, Heart, Shield, CheckCircle, Plus, Cpu
 } from 'lucide-react';
 import PageWrapper from '../components/layout/PageWrapper';
 import StatsCard from '../components/shared/StatsCard';
@@ -104,7 +104,7 @@ const sections = [
   { path: '/academics', icon: GraduationCap, label: 'Academics', desc: 'CGPA, Exams, Attendance', color: '#8b5cf6', gradient: 'linear-gradient(135deg, #8b5cf6, #a78bfa)' },
   { path: '/gsoc', icon: Code2, label: 'GSoC 2027', desc: 'Open Source & Skills', color: '#06b6d4', gradient: 'linear-gradient(135deg, #06b6d4, #22d3ee)' },
   { path: '/cat', icon: BarChart3, label: 'CAT 2027', desc: 'IIM Preparation', color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #fbbf24)' },
-  { path: '/placements', icon: Briefcase, label: 'Placements', desc: 'DSA & AI/ML Skills', color: '#3b82f6', gradient: 'linear-gradient(135deg, #3b82f6, #60a5fa)' },
+  { path: '/placements', icon: Briefcase, label: 'Placements', desc: 'DSA & Skills', color: '#3b82f6', gradient: 'linear-gradient(135deg, #3b82f6, #60a5fa)' },
   { path: '/startup', icon: Rocket, label: 'Startup', desc: 'Ideas & Execution', color: '#f97316', gradient: 'linear-gradient(135deg, #f97316, #fb923c)' },
   { path: '/club', icon: Users, label: 'Tech Society', desc: 'Club Management', color: '#ec4899', gradient: 'linear-gradient(135deg, #ec4899, #f472b6)' },
   { path: '/finance', icon: Wallet, label: 'Finance', desc: 'Track Every Rupee', color: '#10b981', gradient: 'linear-gradient(135deg, #10b981, #06b6d4)' },
@@ -114,6 +114,7 @@ const sections = [
   { path: '/personal', icon: Brain, label: 'Personal Dev', desc: 'Mind & Growth', color: '#a78bfa', gradient: 'linear-gradient(135deg, #a78bfa, #c4b5fd)' },
   { path: '/hobbies', icon: Palette, label: 'Hobbies', desc: 'Skills & Fun', color: '#f43f5e', gradient: 'linear-gradient(135deg, #f43f5e, #fb7185)' },
   { path: '/travel', icon: Plane, label: 'Travel', desc: 'Explore the World', color: '#06b6d4', gradient: 'linear-gradient(135deg, #06b6d4, #22d3ee)' },
+  { path: '/aiml', icon: Cpu, label: 'AI/ML', desc: 'Learning & Research', color: '#ef4444', gradient: 'linear-gradient(135deg, #ef4444, #f97316)' },
 ];
 
 const container = {

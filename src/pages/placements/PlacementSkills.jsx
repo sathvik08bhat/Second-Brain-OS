@@ -20,8 +20,8 @@ export default function PlacementSkills() {
   return (
     <PageWrapper>
       <div className="page-header">
-        <h1><span className="gradient-text">🧠 AI/ML Skills</span></h1>
-        <p>Track your technical skills for placements</p>
+        <h1><span className="gradient-text">🎯 Skills</span></h1>
+        <p>Track your technical skills and proficiency</p>
         <div className="header-actions"><button className="btn-primary" onClick={() => setShowModal(true)}><Plus size={16} /> Add Skill</button></div>
       </div>
 

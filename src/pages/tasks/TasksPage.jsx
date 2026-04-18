@@ -1,20 +1,23 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle, Plus, Trash2, Clock, AlertTriangle, Filter, ChevronDown, ChevronUp } from 'lucide-react';
+import { CheckCircle, Plus, Trash2, Clock, AlertTriangle, Filter, ChevronDown, ChevronUp, Calendar, ListTodo } from 'lucide-react';
 import PageWrapper from '../../components/layout/PageWrapper';
 import Modal from '../../components/shared/Modal';
 import StatsCard from '../../components/shared/StatsCard';
 import { useTaskStore, TASK_CATEGORIES } from '../../store/taskStore';
+import { useGoogleStore } from '../../store/googleStore';
 
 const PRIORITY_COLORS = { high: '#ef4444', medium: '#f59e0b', low: '#10b981' };
 const STATUS_LABELS = { todo: '📋 To Do', 'in-progress': '🔄 In Progress', done: '✅ Done' };
 
 export default function TasksPage() {
   const { tasks, addTask, updateTask, deleteTask, toggleTaskCompletion } = useTaskStore();
+  const { isAuthenticated, createCalendarEvent, createGoogleTask, isTokenValid } = useGoogleStore();
   const [showAdd, setShowAdd] = useState(false);
   const [filter, setFilter] = useState({ category: 'all', priority: 'all', status: 'all' });
-  const [form, setForm] = useState({ title: '', description: '', category: 'personal', priority: 'medium', dueDate: '', status: 'todo' });
+  const [form, setForm] = useState({ title: '', description: '', category: 'personal', priority: 'medium', dueDate: '', deadline: '', status: 'todo' });
   const [expandedTask, setExpandedTask] = useState(null);
+  const [syncing, setSyncing] = useState(null);
 
   const filtered = tasks
     .filter(t => filter.category === 'all' || t.category === filter.category)
@@ -28,15 +31,50 @@ export default function TasksPage() {
 
   const handleAdd = () => {
     if (!form.title.trim()) return;
-    addTask(form);
-    setForm({ title: '', description: '', category: 'personal', priority: 'medium', dueDate: '', status: 'todo' });
+    addTask({
+      ...form,
+      dueDate: form.dueDate || null,
+      deadline: form.deadline || null,
+    });
+    setForm({ title: '', description: '', category: 'personal', priority: 'medium', dueDate: '', deadline: '', status: 'todo' });
     setShowAdd(false);
+  };
+
+  const syncToCalendar = async (task) => {
+    const dateToUse = task.deadline || task.dueDate;
+    if (!dateToUse) return;
+    setSyncing(`cal-${task.id}`);
+    try {
+      const event = await createCalendarEvent({
+        title: `✅ ${task.title}`,
+        description: `Category: ${task.category}\nPriority: ${task.priority}\n${task.description || ''}`,
+        startDate: dateToUse,
+      });
+      updateTask(task.id, { googleCalendarEventId: event.id });
+      alert('✅ Synced to Google Calendar!');
+    } catch (err) { alert('❌ ' + err.message); }
+    setSyncing(null);
+  };
+
+  const syncToGoogleTasks = async (task) => {
+    setSyncing(`task-${task.id}`);
+    try {
+      const gtask = await createGoogleTask({
+        title: task.title,
+        notes: `[${task.category}] ${task.priority} priority\n${task.description || ''}`,
+        dueDate: task.deadline || task.dueDate,
+      });
+      updateTask(task.id, { googleTaskId: gtask.id });
+      alert('✅ Synced to Google Tasks!');
+    } catch (err) { alert('❌ ' + err.message); }
+    setSyncing(null);
   };
 
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter(t => t.completed).length;
-  const overdueTasks = tasks.filter(t => t.dueDate && new Date(t.dueDate) < new Date() && !t.completed).length;
+  const overdueTasks = tasks.filter(t => (t.dueDate || t.deadline) && new Date(t.deadline || t.dueDate) < new Date() && !t.completed).length;
   const highPriority = tasks.filter(t => t.priority === 'high' && !t.completed).length;
+  const isGoogleReady = isAuthenticated && isTokenValid();
 
   return (
     <PageWrapper>
@@ -81,7 +119,8 @@ export default function TasksPage() {
         {filtered.length > 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             {filtered.map(task => {
-              const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && !task.completed;
+              const deadlineDate = task.deadline || task.dueDate;
+              const isOverdue = deadlineDate && new Date(deadlineDate) < new Date() && !task.completed;
               const isExpanded = expandedTask === task.id;
               return (
                 <div key={task.id} style={{ borderBottom: '1px solid var(--border-primary)' }}>
@@ -93,15 +132,33 @@ export default function TasksPage() {
                         <span className="badge" style={{ background: `${PRIORITY_COLORS[task.priority]}15`, color: PRIORITY_COLORS[task.priority], fontSize: '9px' }}>{task.priority}</span>
                         <span className="badge badge-blue" style={{ fontSize: '9px' }}>{task.category}</span>
                         {isOverdue && <span className="badge badge-red" style={{ fontSize: '9px' }}>⚠️ Overdue</span>}
-                        {task.linkedTransactionId && <span className="badge badge-purple" style={{ fontSize: '9px' }}>💰 Linked</span>}
+                        {task.googleCalendarEventId && <span className="badge badge-cyan" style={{ fontSize: '9px' }}>📅 Cal</span>}
+                        {task.googleTaskId && <span className="badge badge-green" style={{ fontSize: '9px' }}>✓ Tasks</span>}
                       </div>
-                      {task.dueDate && <div style={{ fontSize: 'var(--font-xs)', color: isOverdue ? 'var(--accent-red)' : 'var(--text-muted)' }}>Due: {task.dueDate}</div>}
+                      {deadlineDate && <div style={{ fontSize: 'var(--font-xs)', color: isOverdue ? 'var(--accent-red)' : 'var(--text-muted)' }}>Deadline: {deadlineDate}</div>}
                     </div>
                     <select value={task.status} onChange={e => updateTask(task.id, { status: e.target.value, completed: e.target.value === 'done' })} style={{ width: 130, fontSize: 'var(--font-xs)' }}>
                       <option value="todo">📋 To Do</option>
                       <option value="in-progress">🔄 In Progress</option>
                       <option value="done">✅ Done</option>
                     </select>
+
+                    {/* Google Sync Buttons */}
+                    {isGoogleReady && !task.completed && (
+                      <>
+                        {!task.googleCalendarEventId && deadlineDate && (
+                          <button className="btn-icon" onClick={() => syncToCalendar(task)} disabled={syncing === `cal-${task.id}`} title="Sync to Calendar" style={{ color: 'var(--accent-blue)' }}>
+                            <Calendar size={14} />
+                          </button>
+                        )}
+                        {!task.googleTaskId && (
+                          <button className="btn-icon" onClick={() => syncToGoogleTasks(task)} disabled={syncing === `task-${task.id}`} title="Sync to Google Tasks" style={{ color: 'var(--accent-green)' }}>
+                            <ListTodo size={14} />
+                          </button>
+                        )}
+                      </>
+                    )}
+
                     <button className="btn-icon" onClick={() => setExpandedTask(isExpanded ? null : task.id)}>{isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</button>
                     <button className="btn-icon" onClick={() => deleteTask(task.id)} style={{ color: 'var(--accent-red)' }}><Trash2 size={14} /></button>
                   </div>
@@ -140,6 +197,7 @@ export default function TasksPage() {
             </select>
           </div>
           <div className="form-group"><label>Due Date</label><input type="date" value={form.dueDate} onChange={e => setForm({...form, dueDate: e.target.value})} /></div>
+          <div className="form-group"><label>Deadline (for Calendar sync)</label><input type="datetime-local" value={form.deadline} onChange={e => setForm({...form, deadline: e.target.value})} /></div>
           <div className="form-group">
             <label>Status</label>
             <select value={form.status} onChange={e => setForm({...form, status: e.target.value})}>

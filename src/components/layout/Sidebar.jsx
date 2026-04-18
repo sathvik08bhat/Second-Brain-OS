@@ -5,7 +5,7 @@ import {
   LayoutDashboard, GraduationCap, Code2, BarChart3, Rocket,
   Briefcase, Users, Dumbbell, Brain, Palette, Plane,
   ChevronLeft, ChevronRight, ChevronDown, Zap, Inbox, Sun, Moon,
-  CheckCircle, Wallet, Heart, Shield
+  CheckCircle, Wallet, Heart, Shield, Cpu, Link2
 } from 'lucide-react';
 import { useGlobalStore } from '../../store/globalStore';
 import './Sidebar.css';
@@ -17,6 +17,7 @@ const navSections = [
       { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
       { path: '/inbox', icon: Inbox, label: 'Quick Capture' },
       { path: '/tasks', icon: CheckCircle, label: 'Task Tracker' },
+      { path: '/google-sync', icon: Link2, label: 'Google Sync' },
     ]
   },
   {
@@ -32,6 +33,16 @@ const navSections = [
           { path: '/academics/assignments', label: 'Assignments' },
           { path: '/academics/attendance', label: 'Attendance' },
           { path: '/academics/resources', label: 'Resources' },
+        ]
+      },
+      {
+        path: '/aiml', icon: Cpu, label: 'AI/ML',
+        children: [
+          { path: '/aiml', label: 'Overview' },
+          { path: '/aiml/roadmap', label: 'Roadmap' },
+          { path: '/aiml/courses', label: 'Courses' },
+          { path: '/aiml/projects', label: 'Projects' },
+          { path: '/aiml/papers', label: 'Papers' },
         ]
       },
       {
@@ -127,14 +138,7 @@ const navSections = [
           { path: '/personal/goals', label: 'Goals' },
         ]
       },
-      { path: '/hobbies', icon: Palette, label: 'Hobbies',
-        children: [
-          { path: '/hobbies', label: 'Overview' },
-          { path: '/hobbies/photography', label: 'Photography' },
-          { path: '/hobbies/video-editing', label: 'Video Editing' },
-          { path: '/hobbies/table-tennis', label: 'Table Tennis' },
-        ]
-      },
+      { path: '/hobbies', icon: Palette, label: 'Hobbies' },
       { path: '/travel', icon: Plane, label: 'Travel',
         children: [
           { path: '/travel', label: 'Overview' },

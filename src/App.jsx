@@ -21,6 +21,13 @@ import AssignmentTracker from './pages/academics/AssignmentTracker';
 import AttendanceTracker from './pages/academics/AttendanceTracker';
 import Resources from './pages/academics/Resources';
 
+// AI/ML
+import AimlHome from './pages/aiml/AimlHome';
+import AimlRoadmap from './pages/aiml/AimlRoadmap';
+import AimlCourses from './pages/aiml/AimlCourses';
+import AimlProjects from './pages/aiml/AimlProjects';
+import AimlPapers from './pages/aiml/AimlPapers';
+
 // GSoC
 import GsocHome from './pages/gsoc/GsocHome';
 import GsocSkills from './pages/gsoc/GsocSkills';
@@ -84,15 +91,15 @@ import LeadershipResources from './pages/leadership/LeadershipResources';
 
 // Hobbies
 import HobbiesHome from './pages/hobbies/HobbiesHome';
-import Photography from './pages/hobbies/Photography';
-import VideoEditing from './pages/hobbies/VideoEditing';
-import TableTennis from './pages/hobbies/TableTennis';
 import CustomHobby from './pages/hobbies/CustomHobby';
 
 // Travel
 import TravelHome from './pages/travel/TravelHome';
 import Planner from './pages/travel/Planner';
 import TravelHistory from './pages/travel/TravelHistory';
+
+// Settings
+import GoogleIntegration from './pages/settings/GoogleIntegration';
 
 import './App.css';
 
@@ -117,6 +124,7 @@ function AppContent() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/inbox" element={<QuickCapture />} />
             <Route path="/tasks" element={<TasksPage />} />
+            <Route path="/google-sync" element={<GoogleIntegration />} />
 
             {/* Academics */}
             <Route path="/academics" element={<AcademicsHome />} />
@@ -126,6 +134,13 @@ function AppContent() {
             <Route path="/academics/assignments" element={<AssignmentTracker />} />
             <Route path="/academics/attendance" element={<AttendanceTracker />} />
             <Route path="/academics/resources" element={<Resources />} />
+
+            {/* AI/ML */}
+            <Route path="/aiml" element={<AimlHome />} />
+            <Route path="/aiml/roadmap" element={<AimlRoadmap />} />
+            <Route path="/aiml/courses" element={<AimlCourses />} />
+            <Route path="/aiml/projects" element={<AimlProjects />} />
+            <Route path="/aiml/papers" element={<AimlPapers />} />
 
             {/* GSoC */}
             <Route path="/gsoc" element={<GsocHome />} />
@@ -190,9 +205,6 @@ function AppContent() {
 
             {/* Hobbies */}
             <Route path="/hobbies" element={<HobbiesHome />} />
-            <Route path="/hobbies/photography" element={<Photography />} />
-            <Route path="/hobbies/video-editing" element={<VideoEditing />} />
-            <Route path="/hobbies/table-tennis" element={<TableTennis />} />
             <Route path="/hobbies/custom/:hobbyId" element={<CustomHobby />} />
 
             {/* Travel */}
