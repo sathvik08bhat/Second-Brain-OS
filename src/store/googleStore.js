@@ -5,7 +5,7 @@ import { persist } from 'zustand/middleware';
 // Replace with your own Google Cloud OAuth Client ID
 // https://console.cloud.google.com/apis/credentials
 // ─────────────────────────────────────────────────
-const GOOGLE_CLIENT_ID = 'YOUR_CLIENT_ID.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = '535881900428-smoieu90ov1ejv0kupbtj027rij7kvfs.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/tasks';
 
 export const useGoogleStore = create(

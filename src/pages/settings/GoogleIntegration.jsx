@@ -129,8 +129,8 @@ export default function GoogleIntegration() {
             <li>Create a new project (or use existing)</li>
             <li>Enable <strong>Google Calendar API</strong> and <strong>Google Tasks API</strong></li>
             <li>Go to <strong>Credentials</strong> → Create <strong>OAuth 2.0 Client ID</strong> (Web application)</li>
-            <li>Add <code style={{ background: 'var(--bg-glass)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>http://localhost:5173</code> to Authorized JavaScript origins</li>
-            <li>Copy the Client ID and paste it in <code style={{ background: 'var(--bg-glass)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>src/store/googleStore.js</code></li>
+            <li>Add <code style={{ background: 'var(--bg-glass)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>https://second-brain-os-two.vercel.app</code> and <code style={{ background: 'var(--bg-glass)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>http://localhost:5174</code> to Authorized JavaScript origins</li>
+            <li>✅ Client ID is already configured in the app</li>
           </ol>
         </div>
       </motion.div>
