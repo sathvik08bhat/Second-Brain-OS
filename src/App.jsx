@@ -68,6 +68,8 @@ import CustomWikiHub from './pages/startup/CustomWikiHub';
 import ArchitectureGrid from './pages/startup/ArchitectureGrid';
 import MeetingTimeline from './pages/startup/MeetingTimeline';
 import PipelineBoard from './pages/startup/PipelineBoard';
+import UserAcquisition from './pages/startup/UserAcquisition';
+import CapTable from './pages/startup/CapTable';
 
 // Club
 import ClubHome from './pages/club/ClubHome';
@@ -241,6 +243,8 @@ function AppContent() {
             <Route path="/startup/meetings" element={<MeetingTimeline />} />
             <Route path="/startup/deals" element={<PipelineBoard type="deals" />} />
             <Route path="/startup/investors" element={<PipelineBoard type="investors" />} />
+            <Route path="/startup/growth" element={<UserAcquisition />} />
+            <Route path="/startup/cap-table" element={<CapTable />} />
 
             {/* Club */}
             <Route path="/club" element={<ClubHome />} />

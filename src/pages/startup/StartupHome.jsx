@@ -40,7 +40,7 @@ const DEPARTMENTS = [
     dbs: [
       { id: 'gtmCampaigns', title: 'GTM Campaigns', icon: Rocket },
       { id: 'assetLibrary', title: 'Asset Library', icon: Image },
-      { id: 'userAcquisitionLogs', title: 'User Acquisition', icon: Users },
+      { id: 'userAcquisitionLogs', title: 'User Acquisition', icon: Users, isCustom: true, path: '/startup/growth' },
     ]
   },
   {
@@ -67,7 +67,7 @@ const DEPARTMENTS = [
     subtitle: 'Capital & Runway',
     color: '#14b8a6', // Teal
     dbs: [
-      { id: 'capTable', title: 'Cap Table & Equity', icon: PieChart },
+      { id: 'capTable', title: 'Cap Table & Equity', icon: PieChart, isCustom: true, path: '/startup/cap-table' },
       { id: 'finances', title: 'Runway & Burn Rate', icon: Activity, isCustom: true, path: '/startup/finance' },
       { id: 'investorPipeline', title: 'Investor Pipeline', icon: DollarSign, isCustom: true, path: '/startup/investors' },
     ]
