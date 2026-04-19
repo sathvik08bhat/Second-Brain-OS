@@ -1,71 +1,189 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plane, Plus, Trash2, Edit3, Check } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import { 
+  Map, Calendar, Plus, Navigation, Clock, DollarSign, Users, Type, Move, MapPin
+} from 'lucide-react';
 import PageWrapper from '../../components/layout/PageWrapper';
-import Modal from '../../components/shared/Modal';
 import { useTravelStore } from '../../store/travelStore';
-import { formatDateShort } from '../../utils/helpers';
+
+// Fix Leaflet marker icons in Vite
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
+  shadowUrl: markerShadow,
+});
+
+// A component to auto-pan the map when markers change
+function MapController({ center, zoom }) {
+  const map = useMap();
+  useEffect(() => {
+    map.flyTo(center, zoom, { animate: true, duration: 1.5 });
+  }, [center, zoom, map]);
+  return null;
+}
 
 export default function Planner() {
-  const { trips, addTrip, updateTrip, deleteTrip } = useTravelStore();
-  const [showModal, setShowModal] = useState(false);
-  const [editId, setEditId] = useState(null);
-  const [form, setForm] = useState({ destination: '', startDate: '', endDate: '', budget: '', status: 'planning', notes: '', members: '' });
+  const { trips, addTrip, updateTrip } = useTravelStore();
+  const [activeTripId, setActiveTripId] = useState(null);
+  
+  // Default bounds for India view
+  const [mapCenter, setMapCenter] = useState([20.5937, 78.9629]);
+  const [mapZoom, setMapZoom] = useState(5);
 
-  const activeTrips = trips.filter(t => t.status !== 'completed');
+  const activeTrip = trips.find(t => t.id === activeTripId) || trips[0];
 
-  const handleSubmit = (e) => { e.preventDefault(); if (editId) updateTrip(editId, { ...form, budget: Number(form.budget) }); else addTrip({ ...form, budget: Number(form.budget) }); resetForm(); };
-  const resetForm = () => { setForm({ destination: '', startDate: '', endDate: '', budget: '', status: 'planning', notes: '', members: '' }); setEditId(null); setShowModal(false); };
-  const startEdit = (t) => { setForm({ destination: t.destination, startDate: t.startDate, endDate: t.endDate, budget: t.budget || '', status: t.status, notes: t.notes || '', members: t.members || '' }); setEditId(t.id); setShowModal(true); };
+  useEffect(() => {
+    if (!activeTrip && trips.length > 0) {
+      setActiveTripId(trips[0].id);
+    }
+  }, [trips, activeTrip]);
 
-  const statusColors = { planning: 'badge-yellow', booked: 'badge-blue', ongoing: 'badge-purple' };
+  if (!activeTrip && trips.length === 0) {
+    return (
+      <PageWrapper>
+        <div className="page-header">
+          <h1><span className="gradient-text">🗺️ Travel Planner</span></h1>
+          <p>Create your ultimate interactive itineraries</p>
+          <div className="header-actions">
+            <button className="btn-primary" onClick={() => addTrip({ destination: 'New Trip', startDate: '', endDate: '', budget: 0, itinerary: [] })}><Plus size={16} /> New Draft</button>
+          </div>
+        </div>
+        <div className="glass-card" style={{ padding: '3rem', textAlign: 'center' }}>
+          <Map size={48} style={{ opacity: 0.3, marginBottom: '1rem' }} />
+          <h3>No Active Trips</h3>
+          <p style={{ color: 'var(--text-tertiary)' }}>Start planning a new adventure to unlock the interactive canvas.</p>
+        </div>
+      </PageWrapper>
+    );
+  }
+
+  const flyToLocation = (lat, lng) => {
+    setMapCenter([lat, lng]);
+    setMapZoom(12);
+  };
+
+  const handleUpdateMeta = (e, field) => {
+    updateTrip(activeTrip.id, { [field]: e.target.textContent || e.target.value });
+  };
+
+  const addWaypoint = (day) => {
+    const freshItinerary = [...(activeTrip.itinerary || [])];
+    const newPoint = {
+      id: Date.now().toString(),
+      day,
+      time: '10:00 AM',
+      title: 'New Location',
+      type: 'landmark',
+      lat: mapCenter[0] + (Math.random() * 0.05),
+      lng: mapCenter[1] + (Math.random() * 0.05)
+    };
+    freshItinerary.push(newPoint);
+    updateTrip(activeTrip.id, { itinerary: freshItinerary });
+  };
 
   return (
-    <PageWrapper>
-      <div className="page-header">
-        <h1><span className="gradient-text">🗺️ Trip Planner</span></h1>
-        <p>Organize upcoming travels and itineraries</p>
-        <div className="header-actions"><button className="btn-primary" onClick={() => setShowModal(true)}><Plus size={16} /> Plan Trip</button></div>
-      </div>
-
-      {activeTrips.length === 0 ? (
-        <div className="empty-state"><Plane size={48} /><h3>No Trips Planned</h3><p>Where to next?</p><button className="btn-primary" onClick={() => setShowModal(true)}><Plus size={16} /> Plan Journey</button></div>
-      ) : (
-        <div className="grid-auto">
-          {activeTrips.map((t, i) => (
-            <motion.div key={t.id} className="glass-card" style={{ padding: '1.25rem' }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-                <div style={{ fontWeight: 700, fontSize: 'var(--font-lg)' }}>{t.destination}</div>
-                <div style={{ display: 'flex', gap: '0.2rem' }}>
-                  <button className="btn-icon" onClick={() => startEdit(t)}><Edit3 size={14} /></button>
-                  <button className="btn-icon" onClick={() => deleteTrip(t.id)} style={{ color: 'var(--accent-red)' }}><Trash2 size={14} /></button>
-                </div>
-              </div>
-              <div style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>{formatDateShort(t.startDate)} — {formatDateShort(t.endDate)}</div>
-              {t.members && <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)', marginBottom: '0.5rem' }}>With: {t.members}</div>}
-              <p style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)', marginBottom: '1rem', flex: 1 }}>{t.notes}</p>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span className={`badge ${statusColors[t.status]}`}>{t.status.toUpperCase()}</span>
-                {t.budget > 0 && <span style={{ fontWeight: 600, color: 'var(--accent-cyan)' }}>Est. ₹{t.budget}</span>}
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      )}
-
-      <Modal isOpen={showModal} onClose={resetForm} title={editId ? 'Edit Trip' : 'Plan Trip'}>
-        <form onSubmit={handleSubmit}>
-          <div className="form-grid cols-1">
-            <div className="form-group"><label>Destination *</label><input value={form.destination} onChange={(e) => setForm({ ...form, destination: e.target.value })} required /></div>
-            <div style={{ display: 'flex', gap: '1rem' }}><div className="form-group" style={{ flex: 1 }}><label>Start Date *</label><input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} required /></div><div className="form-group" style={{ flex: 1 }}><label>End Date *</label><input type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} required /></div></div>
-            <div className="form-group"><label>Companions</label><input value={form.members} onChange={(e) => setForm({ ...form, members: e.target.value })} placeholder="e.g. Friends, Family" /></div>
-            <div className="form-group"><label>Budget (₹)</label><input type="number" value={form.budget} onChange={(e) => setForm({ ...form, budget: e.target.value })} /></div>
-            <div className="form-group"><label>Status</label><select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}><option value="planning">Planning</option><option value="booked">Booked</option><option value="ongoing">Ongoing</option><option value="completed">Completed (Move to History)</option></select></div>
-            <div className="form-group"><label>Itinerary / Notes</label><textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={3} /></div>
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', margin: '-var(--space-xl)', overflow: 'hidden' }}>
+      {/* ── Header ── */}
+      <header style={{ padding: '1.25rem 2rem', background: 'var(--bg-glass)', borderBottom: '1px solid var(--border-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 10 }}>
+        <div>
+          <h1 contentEditable suppressContentEditableWarning onBlur={(e) => handleUpdateMeta(e, 'destination')} style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0, outline: 'none', cursor: 'text' }}>
+            {activeTrip?.destination || 'Untitled Trip'}
+          </h1>
+          <div style={{ display: 'flex', gap: '1.5rem', marginTop: '0.4rem', color: 'var(--text-tertiary)', fontSize: 'var(--font-xs)', fontWeight: 600 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Calendar size={12} /> {activeTrip?.startDate || 'Dates TBD'}</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><DollarSign size={12} /> ₹{activeTrip?.budget || 0} Est.</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Users size={12} /> {activeTrip?.travelers || 2} Travelers</span>
           </div>
-          <div className="modal-actions"><button type="submit" className="btn-primary"><Check size={16} /> Save</button></div>
-        </form>
-      </Modal>
-    </PageWrapper>
+        </div>
+
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <select value={activeTripId || ''} onChange={e => setActiveTripId(e.target.value)} className="input-primary" style={{ padding: '0.4rem 0.8rem', width: 200 }}>
+             {trips.map(t => <option key={t.id} value={t.id}>{t.destination}</option>)}
+          </select>
+          <button className="btn-secondary" onClick={() => addTrip({ destination: 'New Trip', startDate: '', endDate: '', budget: 0, itinerary: [] })}><Plus size={16} /> New</button>
+        </div>
+      </header>
+
+      {/* ── Main Canvas ── */}
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+        
+        {/* Map Panel Container */}
+        <section style={{ flex: 1, position: 'relative' }}>
+          <MapContainer center={mapCenter} zoom={mapZoom} style={{ height: '100%', width: '100%', background: '#0a0a0f' }} zoomControl={false}>
+            {/* Dark Matter CartoDB theme to match aesthetic */}
+            <TileLayer
+              url="https://settings.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png"
+              attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+            />
+            <MapController center={mapCenter} zoom={mapZoom} />
+            
+            {activeTrip?.itinerary?.map(pt => (
+              <Marker key={pt.id} position={[pt.lat, pt.lng]}>
+                <Popup>
+                  <div style={{ color: '#000', fontWeight: 600 }}>{pt.title}</div>
+                  <div style={{ color: '#666', fontSize: '10px' }}>{pt.time} - Day {pt.day}</div>
+                </Popup>
+              </Marker>
+            ))}
+          </MapContainer>
+          
+          <div style={{ position: 'absolute', top: 20, right: 20, zIndex: 1000, display: 'flex', gap: '0.5rem' }}>
+            <button className="btn-primary" style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>Traffic Layers</button>
+          </div>
+        </section>
+
+        {/* Itinerary Panel */}
+        <section style={{ width: '400px', background: 'var(--bg-card)', borderLeft: '1px solid var(--border-primary)', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ padding: '1.25rem', borderBottom: '1px solid var(--border-primary)', background: 'var(--bg-glass)' }}>
+            <h3 style={{ fontSize: 'var(--font-md)', display: 'flex', alignItems: 'center', gap: 6 }}><Navigation size={18} /> Schedule Editor</h3>
+          </div>
+          
+          <div style={{ flex: 1, overflowY: 'auto', padding: '1rem' }}>
+            {[1, 2, 3].map(day => {
+              const dayItems = (activeTrip?.itinerary || []).filter(i => i.day === day).sort((a,b)=>a.time.localeCompare(b.time));
+              return (
+                <div key={day} style={{ marginBottom: '2rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h4 style={{ color: 'var(--accent-purple-light)' }}>Day {day}</h4>
+                    <button className="btn-icon" onClick={() => addWaypoint(day)} title="Add stop to Day"><Plus size={14} /></button>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {dayItems.length === 0 ? (
+                      <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)', padding: '1rem', border: '1px dashed var(--border-primary)', borderRadius: 'var(--radius-sm)', textAlign: 'center' }}>No activities mapped.</div>
+                    ) : (
+                      dayItems.map((item, idx) => (
+                        <motion.div key={item.id} className="glass-card" style={{ padding: '0.75rem', display: 'flex', gap: '0.75rem', alignItems: 'flex-start', cursor: 'grab' }} layoutId={item.id}>
+                           <div style={{ width: 24, display: 'flex', justifyContent: 'center', color: 'var(--text-tertiary)', marginTop: 2 }}><Move size={14} /></div>
+                           <div style={{ flex: 1 }}>
+                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                               <div style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 4 }}><Clock size={10} /> {item.time}</div>
+                               <button className="btn-icon" onClick={() => flyToLocation(item.lat, item.lng)} style={{ padding: 2, color: 'var(--accent-cyan)' }} title="Fly to location"><MapPin size={12}/></button>
+                             </div>
+                             <div contentEditable suppressContentEditableWarning style={{ fontWeight: 600, fontSize: 'var(--font-sm)', outline: 'none', marginTop: 4, minHeight: 20 }}>{item.title}</div>
+                             <div style={{ fontSize: '9px', textTransform: 'uppercase', color: 'var(--accent-purple-light)', marginTop: 4, display: 'inline-block', background: 'var(--accent-purple)15', padding: '2px 6px', borderRadius: 4 }}>{item.type}</div>
+                           </div>
+                        </motion.div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+            
+            <button className="btn-secondary" style={{ width: '100%', padding: '0.75rem' }}><Plus size={14} /> Add Day</button>
+          </div>
+        </section>
+
+      </div>
+    </div>
   );
 }

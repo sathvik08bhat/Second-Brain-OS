@@ -18,17 +18,30 @@ import { useTaskStore, TASK_CATEGORIES } from '../store/taskStore';
 import { useFinanceStore } from '../store/financeStore';
 import { useGoogleStore } from '../store/googleStore';
 import { useDsaStore } from '../store/dsaStore';
+import { useGlobalStore } from '../store/globalStore';
 import { getGreeting } from '../utils/helpers';
 import './Dashboard.css';
 
 function DashboardTaskTracker() {
   const { tasks, addTask, toggleTaskCompletion, deleteTask } = useTaskStore();
+  const { googleTasks, toggleGoogleTaskComplete, deleteGoogleTask, isTokenValid } = useGoogleStore();
   const [showAdd, setShowAdd] = useState(false);
   const [newTask, setNewTask] = useState({ title: '', category: 'personal', priority: 'medium' });
   const [filter, setFilter] = useState('all');
 
-  const filtered = tasks
-    .filter(t => filter === 'all' || t.category === filter)
+  const showGoogle = isTokenValid();
+
+  const localFiltered = tasks.filter(t => filter === 'all' || t.category === filter).map(t => ({...t, isGoogle: false}));
+  const googleFiltered = showGoogle 
+    ? googleTasks.filter(t => filter === 'all' || filter === 'google').map(t => ({
+        ...t, 
+        isGoogle: true,
+        priority: 'medium',
+        category: t.listName || 'google'
+      })) 
+    : [];
+
+  const combined = [...localFiltered, ...googleFiltered]
     .sort((a, b) => {
       if (a.completed !== b.completed) return a.completed ? 1 : -1;
       const pri = { high: 3, medium: 2, low: 1 };
@@ -43,8 +56,7 @@ function DashboardTaskTracker() {
     setShowAdd(false);
   };
 
-  const pendingCount = tasks.filter(t => !t.completed).length;
-  const completedToday = tasks.filter(t => t.completed && t.createdAt && new Date(t.createdAt).toDateString() === new Date().toDateString()).length;
+  const pendingCount = combined.filter(t => !t.completed).length;
 
   const PRIORITY_COLORS = { high: '#ef4444', medium: '#f59e0b', low: '#10b981' };
 
@@ -52,10 +64,11 @@ function DashboardTaskTracker() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <span style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)' }}>{pendingCount} pending</span>
+          <span style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)' }}>{pendingCount} top pending</span>
           <select value={filter} onChange={e => setFilter(e.target.value)} style={{ width: 120, fontSize: 'var(--font-xs)', padding: '0.3rem 0.5rem' }}>
-            <option value="all">All</option>
+            <option value="all">All Tracking</option>
             {TASK_CATEGORIES.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+            {showGoogle && <option value="google">Google Tasks</option>}
           </select>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
@@ -79,21 +92,20 @@ function DashboardTaskTracker() {
         </motion.div>
       )}
 
-      {tasks.length === 0 ? (
-        <div style={{ color: 'var(--text-tertiary)', fontSize: 'var(--font-sm)', textAlign: 'center', padding: '1rem' }}>No tasks yet. Click + to add your first task!</div>
-      ) : filtered.length === 0 ? (
-        <div style={{ color: 'var(--accent-green)', fontWeight: 600, textAlign: 'center', padding: '0.5rem' }}>All caught up in this category! 🎉</div>
+      {combined.length === 0 ? (
+        <div style={{ color: 'var(--text-tertiary)', fontSize: 'var(--font-sm)', textAlign: 'center', padding: '1rem' }}>No tasks found in this view.</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-          {filtered.map(task => (
-            <div key={task.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.6rem 0.75rem', background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-sm)' }}>
+          {combined.map(task => (
+            <div key={task.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.6rem 0.75rem', background: 'var(--bg-secondary)', border: `1px solid ${task.isGoogle ? 'rgba(16, 185, 129, 0.3)' : 'var(--border-primary)'}`, borderRadius: 'var(--radius-sm)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flex: 1, minWidth: 0 }}>
-                <input type="checkbox" checked={task.completed} onChange={() => toggleTaskCompletion(task.id)} style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#8b5cf6', flexShrink: 0 }} />
+                <input type="checkbox" checked={task.completed} onChange={() => task.isGoogle ? toggleGoogleTaskComplete(task.listId, task.id, task.completed) : toggleTaskCompletion(task.id)} style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: task.isGoogle ? '#10b981' : '#8b5cf6', flexShrink: 0 }} title={task.isGoogle ? "Syncs to Google Tasks" : "Local Task"} />
                 <span style={{ fontWeight: 600, fontSize: 'var(--font-sm)', color: 'var(--text-primary)', textDecoration: task.completed ? 'line-through' : 'none', opacity: task.completed ? 0.5 : 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.title}</span>
-                <span className="badge" style={{ background: `${PRIORITY_COLORS[task.priority]}15`, color: PRIORITY_COLORS[task.priority], fontSize: '9px', flexShrink: 0 }}>{task.priority}</span>
+                {task.isGoogle ? <span className="badge" style={{ background: '#10b98115', color: '#10b981', fontSize: '9px', flexShrink: 0 }}>Cloud</span> : null}
+                {!task.isGoogle && <span className="badge" style={{ background: `${PRIORITY_COLORS[task.priority]}15`, color: PRIORITY_COLORS[task.priority], fontSize: '9px', flexShrink: 0 }}>{task.priority}</span>}
                 <span className="badge badge-blue" style={{ fontSize: '9px', flexShrink: 0 }}>{task.category}</span>
               </div>
-              <button className="btn-icon" onClick={() => deleteTask(task.id)} style={{ fontSize: '10px', padding: '0.2rem', flexShrink: 0 }}>✕</button>
+              <button className="btn-icon" onClick={() => task.isGoogle ? deleteGoogleTask(task.listId, task.id) : deleteTask(task.id)} style={{ fontSize: '10px', padding: '0.2rem', flexShrink: 0 }}>✕</button>
             </div>
           ))}
         </div>
@@ -103,22 +115,21 @@ function DashboardTaskTracker() {
 }
 
 const sections = [
-  { path: '/academics', icon: GraduationCap, label: 'Academics', desc: 'CGPA, Exams, Attendance', color: '#8b5cf6', gradient: 'linear-gradient(135deg, #8b5cf6, #a78bfa)' },
-  { path: '/dsa', icon: Code2, label: 'DSA Hub', desc: 'LeetCode & Roadmap', color: '#06b6d4', gradient: 'linear-gradient(135deg, #06b6d4, #22d3ee)' },
-  { path: '/aiml', icon: Cpu, label: 'AI/ML', desc: 'Learning & Research', color: '#ef4444', gradient: 'linear-gradient(135deg, #ef4444, #f97316)' },
-  { path: '/placements', icon: Briefcase, label: 'Placements', desc: 'DSA & Skills', color: '#3b82f6', gradient: 'linear-gradient(135deg, #3b82f6, #60a5fa)' },
-  { path: '/cat', icon: BarChart3, label: 'CAT 2027', desc: 'IIM Preparation', color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #fbbf24)' },
-  { path: '/gsoc', icon: Code2, label: 'GSoC 2027', desc: 'Open Source & Skills', color: '#06b6d4', gradient: 'linear-gradient(135deg, #06b6d4, #22d3ee)' },
-  { path: '/startup', icon: Rocket, label: 'Startup', desc: 'Ideas & Execution', color: '#f97316', gradient: 'linear-gradient(135deg, #f97316, #fb923c)' },
-  { path: '/club', icon: Users, label: 'Tech Society', desc: 'Club Management', color: '#ec4899', gradient: 'linear-gradient(135deg, #ec4899, #f472b6)' },
-  { path: '/finance', icon: Wallet, label: 'Finance', desc: 'Track Every Rupee', color: '#10b981', gradient: 'linear-gradient(135deg, #10b981, #06b6d4)' },
-  { path: '/fitness', icon: Dumbbell, label: 'Fitness', desc: '89kg → 75kg Journey', color: '#22d3ee', gradient: 'linear-gradient(135deg, #22d3ee, #67e8f9)' },
-  { path: '/mental-health', icon: Heart, label: 'Mental Health', desc: 'Wellbeing & Growth', color: '#ec4899', gradient: 'linear-gradient(135deg, #ec4899, #f472b6)' },
-  { path: '/leadership', icon: Shield, label: 'Leadership', desc: 'Skills & Development', color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #fbbf24)' },
-  { path: '/personal', icon: Brain, label: 'Personal Dev', desc: 'Mind & Growth', color: '#a78bfa', gradient: 'linear-gradient(135deg, #a78bfa, #c4b5fd)' },
-  { path: '/hobbies', icon: Palette, label: 'Hobbies', desc: 'Skills & Fun', color: '#f43f5e', gradient: 'linear-gradient(135deg, #f43f5e, #fb7185)' },
-  { path: '/travel', icon: Plane, label: 'Travel', desc: 'Explore the World', color: '#06b6d4', gradient: 'linear-gradient(135deg, #06b6d4, #22d3ee)' },
-  { path: '/aiml', icon: Cpu, label: 'AI/ML', desc: 'Learning & Research', color: '#ef4444', gradient: 'linear-gradient(135deg, #ef4444, #f97316)' },
+  { moduleId: 'academics', path: '/academics', icon: GraduationCap, label: 'Academics', desc: 'CGPA, Exams, Attendance', color: '#8b5cf6', gradient: 'linear-gradient(135deg, #8b5cf6, #a78bfa)' },
+  { moduleId: 'dsa', path: '/dsa', icon: Code2, label: 'DSA Hub', desc: 'LeetCode & Roadmap', color: '#06b6d4', gradient: 'linear-gradient(135deg, #06b6d4, #22d3ee)' },
+  { moduleId: 'aiml', path: '/aiml', icon: Cpu, label: 'AI/ML', desc: 'Learning & Research', color: '#ef4444', gradient: 'linear-gradient(135deg, #ef4444, #f97316)' },
+  { moduleId: 'placements', path: '/placements', icon: Briefcase, label: 'Placements', desc: 'DSA & Skills', color: '#3b82f6', gradient: 'linear-gradient(135deg, #3b82f6, #60a5fa)' },
+  { moduleId: 'cat', path: '/cat', icon: BarChart3, label: 'CAT 2027', desc: 'IIM Preparation', color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #fbbf24)' },
+  { moduleId: 'gsoc', path: '/gsoc', icon: Code2, label: 'GSoC 2027', desc: 'Open Source & Skills', color: '#06b6d4', gradient: 'linear-gradient(135deg, #06b6d4, #22d3ee)' },
+  { moduleId: 'startup', path: '/startup', icon: Rocket, label: 'Startup', desc: 'Ideas & Execution', color: '#f97316', gradient: 'linear-gradient(135deg, #f97316, #fb923c)' },
+  { moduleId: 'club', path: '/club', icon: Users, label: 'Tech Society', desc: 'Club Management', color: '#ec4899', gradient: 'linear-gradient(135deg, #ec4899, #f472b6)' },
+  { moduleId: 'finance', path: '/finance', icon: Wallet, label: 'Finance', desc: 'Track Every Rupee', color: '#10b981', gradient: 'linear-gradient(135deg, #10b981, #06b6d4)' },
+  { moduleId: 'fitness', path: '/fitness', icon: Dumbbell, label: 'Fitness', desc: '89kg → 75kg Journey', color: '#22d3ee', gradient: 'linear-gradient(135deg, #22d3ee, #67e8f9)' },
+  { moduleId: 'mentalHealth', path: '/mental-health', icon: Heart, label: 'Mental Health', desc: 'Wellbeing & Growth', color: '#ec4899', gradient: 'linear-gradient(135deg, #ec4899, #f472b6)' },
+  { moduleId: 'leadership', path: '/leadership', icon: Shield, label: 'Leadership', desc: 'Skills & Development', color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #fbbf24)' },
+  { moduleId: 'personal', path: '/personal', icon: Brain, label: 'Personal Dev', desc: 'Mind & Growth', color: '#a78bfa', gradient: 'linear-gradient(135deg, #a78bfa, #c4b5fd)' },
+  { moduleId: 'hobbies', path: '/hobbies', icon: Palette, label: 'Hobbies', desc: 'Skills & Fun', color: '#f43f5e', gradient: 'linear-gradient(135deg, #f43f5e, #fb7185)' },
+  { moduleId: 'travel', path: '/travel', icon: Plane, label: 'Travel', desc: 'Explore the World', color: '#06b6d4', gradient: 'linear-gradient(135deg, #06b6d4, #22d3ee)' },
 ];
 
 const container = {
@@ -135,6 +146,7 @@ const item = {
 };
 
 export default function Dashboard() {
+  const { enabledModules } = useGlobalStore();
   const subjects = useAcademicStore((s) => s.subjects);
   const exams = useAcademicStore((s) => s.exams);
   const { currentWeight, targetWeight } = useFitnessStore();
@@ -262,7 +274,7 @@ export default function Dashboard() {
         initial="hidden"
         animate="show"
       >
-        {sections.map((section) => (
+        {sections.filter(s => enabledModules[s.moduleId] !== false).map((section) => (
           <motion.div key={section.path} variants={item}>
             <Link to={section.path} className="section-card glass-card">
               <div className="section-card-icon" style={{ background: `${section.color}12`, color: section.color }}>

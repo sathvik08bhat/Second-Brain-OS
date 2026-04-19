@@ -287,7 +287,7 @@ export default function CalendarPage() {
                   key={i} onClick={() => cell && setSelectedDate(cell.dateStr)}
                   style={{
                     minHeight: 110, padding: '0.4rem',
-                    background: cell?.dateStr === selectedDate ? 'var(--accent-purple-light)' : cell?.isToday ? 'rgba(139, 92, 246, 0.05)' : 'var(--bg-card)',
+                    background: cell?.dateStr === selectedDate ? 'var(--accent-purple-light)' : cell?.isToday ? 'var(--bg-card-hover)' : 'var(--bg-card)',
                     cursor: cell ? 'pointer' : 'default', transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                   }}
                 >
@@ -440,7 +440,7 @@ export default function CalendarPage() {
           </div>
           <div className="form-group">
             <label>Color Code (Google Enum)</label>
-            <select className="input-field" value={eventForm.colorId} onChange={e => setEventForm({ ...eventForm, colorId: e.target.value })} style={{ width: '100%', padding: '0.75rem', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', color: 'white' }}>
+            <select className="input-field" value={eventForm.colorId} onChange={e => setEventForm({ ...eventForm, colorId: e.target.value })} style={{ width: '100%', padding: '0.75rem', background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', color: 'var(--text-primary)' }}>
               {Object.keys(EVENT_COLORS).filter(k=>k!=='default').map(k => <option key={k} value={k}>Google Color Enum #{k}</option>)}
             </select>
           </div>

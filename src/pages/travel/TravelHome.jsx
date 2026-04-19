@@ -6,7 +6,7 @@ import StatsCard from '../../components/shared/StatsCard';
 import { useTravelStore } from '../../store/travelStore';
 
 export default function TravelHome() {
-  const { trips, log } = useTravelStore();
+  const { trips, travelHistory } = useTravelStore();
 
   const activeTrips = trips.filter(t => t.status === 'planning' || t.status === 'booked').length;
 
@@ -24,7 +24,7 @@ export default function TravelHome() {
 
       <div className="grid-2" style={{ marginBottom: 'var(--space-xl)' }}>
         <StatsCard icon={Plane} label="Upcoming Trips" value={activeTrips} subtitle="In planning" color="#06b6d4" />
-        <StatsCard icon={History} label="Places Visited" value={log.length} subtitle="Past travels" color="#10b981" delay={0.1} />
+        <StatsCard icon={History} label="Places Visited" value={travelHistory.length} subtitle="Past travels" color="#10b981" delay={0.1} />
       </div>
 
       <div className="grid-auto">

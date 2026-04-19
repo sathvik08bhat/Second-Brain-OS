@@ -25,7 +25,7 @@ export const navSections = [
     title: 'ACADEMICS & CAREER',
     items: [
       {
-        path: '/academics', icon: GraduationCap, label: 'Academics',
+        path: '/academics', icon: GraduationCap, label: 'Academics', moduleId: 'academics',
         children: [
           { path: '/academics', label: 'Overview' },
           { path: '/academics/subjects', label: 'Subjects' },
@@ -37,7 +37,7 @@ export const navSections = [
         ]
       },
       {
-        path: '/dsa', icon: Code2, label: 'DSA Hub',
+        path: '/dsa', icon: Code2, label: 'DSA Hub', moduleId: 'dsa',
         children: [
           { path: '/dsa', label: 'Overview' },
           { path: '/dsa/roadmap', label: 'Roadmap' },
@@ -45,7 +45,7 @@ export const navSections = [
         ]
       },
       {
-        path: '/aiml', icon: Cpu, label: 'AI/ML',
+        path: '/aiml', icon: Cpu, label: 'AI/ML', moduleId: 'aiml',
         children: [
           { path: '/aiml', label: 'Overview' },
           { path: '/aiml/roadmap', label: 'Roadmap' },
@@ -55,7 +55,7 @@ export const navSections = [
         ]
       },
       {
-        path: '/gsoc', icon: Code2, label: 'GSoC 2027',
+        path: '/gsoc', icon: Code2, label: 'GSoC 2027', moduleId: 'gsoc',
         children: [
           { path: '/gsoc', label: 'Overview' },
           { path: '/gsoc/skills', label: 'Skills' },
@@ -64,7 +64,7 @@ export const navSections = [
         ]
       },
       {
-        path: '/cat', icon: BarChart3, label: 'CAT 2027',
+        path: '/cat', icon: BarChart3, label: 'CAT 2027', moduleId: 'cat',
         children: [
           { path: '/cat', label: 'Overview' },
           { path: '/cat/sections', label: 'Sections' },
@@ -72,7 +72,7 @@ export const navSections = [
           { path: '/cat/resources', label: 'Resources' },
         ]
       },
-      { path: '/placements', icon: Briefcase, label: 'Placements',
+      { path: '/placements', icon: Briefcase, label: 'Placements', moduleId: 'placements',
         children: [
           { path: '/placements', label: 'Overview' },
           { path: '/placements/skills', label: 'Skills' },
@@ -84,7 +84,7 @@ export const navSections = [
   {
     title: 'VENTURES',
     items: [
-      { path: '/startup', icon: Rocket, label: 'Startup',
+      { path: '/startup', icon: Rocket, label: 'Startup', moduleId: 'startup',
         children: [
           { path: '/startup', label: 'Overview' },
           { path: '/startup/ideas', label: 'Idea Lab' },
@@ -92,7 +92,7 @@ export const navSections = [
           { path: '/startup/finance', label: 'Finance' },
         ]
       },
-      { path: '/club', icon: Users, label: 'Tech Society',
+      { path: '/club', icon: Users, label: 'Tech Society', moduleId: 'club',
         children: [
           { path: '/club', label: 'Overview' },
           { path: '/club/members', label: 'Members' },
@@ -105,7 +105,7 @@ export const navSections = [
   {
     title: 'LIFE & GROWTH',
     items: [
-      { path: '/finance', icon: Wallet, label: 'Finance',
+      { path: '/finance', icon: Wallet, label: 'Finance', moduleId: 'finance',
         children: [
           { path: '/finance', label: 'Overview' },
           { path: '/finance/accounts', label: 'Accounts' },
@@ -114,7 +114,7 @@ export const navSections = [
           { path: '/finance/savings', label: 'Savings & EMIs' },
         ]
       },
-      { path: '/fitness', icon: Dumbbell, label: 'Fitness',
+      { path: '/fitness', icon: Dumbbell, label: 'Fitness', moduleId: 'fitness',
         children: [
           { path: '/fitness', label: 'Overview' },
           { path: '/fitness/google-fit', label: 'Google Fit Hub' },
@@ -124,7 +124,7 @@ export const navSections = [
           { path: '/fitness/cardio', label: 'Cardio' },
         ]
       },
-      { path: '/mental-health', icon: Heart, label: 'Mental Health',
+      { path: '/mental-health', icon: Heart, label: 'Mental Health', moduleId: 'mentalHealth',
         children: [
           { path: '/mental-health', label: 'Overview' },
           { path: '/mental-health/mood', label: 'Mood Tracker' },
@@ -132,7 +132,7 @@ export const navSections = [
           { path: '/mental-health/resources', label: 'Resources' },
         ]
       },
-      { path: '/leadership', icon: Shield, label: 'Leadership',
+      { path: '/leadership', icon: Shield, label: 'Leadership', moduleId: 'leadership',
         children: [
           { path: '/leadership', label: 'Overview' },
           { path: '/leadership/skills', label: 'Skill Deep Dive' },
@@ -140,7 +140,7 @@ export const navSections = [
         ]
       },
       { path: '/vault', icon: Lock, label: 'Private Vault' },
-      { path: '/personal', icon: Brain, label: 'Personal Dev',
+      { path: '/personal', icon: Brain, label: 'Personal Dev', moduleId: 'personal',
         children: [
           { path: '/personal', label: 'Overview' },
           { path: '/personal/journal', label: 'Journal' },
@@ -148,8 +148,8 @@ export const navSections = [
           { path: '/personal/goals', label: 'Goals' },
         ]
       },
-      { path: '/hobbies', icon: Palette, label: 'Hobbies' },
-      { path: '/travel', icon: Plane, label: 'Travel',
+      { path: '/hobbies', icon: Palette, label: 'Hobbies', moduleId: 'hobbies' },
+      { path: '/travel', icon: Plane, label: 'Travel', moduleId: 'travel',
         children: [
           { path: '/travel', label: 'Overview' },
           { path: '/travel/planner', label: 'Trip Planner' },
@@ -160,8 +160,8 @@ export const navSections = [
   },
 ];
 
-export default function Sidebar() {
-  const { sidebarCollapsed, toggleSidebar, theme, toggleTheme } = useGlobalStore();
+export default function Sidebar({ onOpenSettings }) {
+  const { sidebarCollapsed, toggleSidebar, theme, toggleTheme, enabledModules } = useGlobalStore();
   const [expandedItems, setExpandedItems] = useState({});
   const location = useLocation();
 
@@ -212,12 +212,17 @@ export default function Sidebar() {
 
       {/* Navigation */}
       <nav className="sidebar-nav">
-        {navSections.map((section) => (
+        {navSections.map((section) => {
+          // Filter items based on enabledModules (if no moduleId, it's always visible like Dashboard)
+          const visibleItems = section.items.filter(i => !i.moduleId || enabledModules[i.moduleId] !== false);
+          if (visibleItems.length === 0) return null;
+
+          return (
           <div key={section.title} className="nav-section">
             {!sidebarCollapsed && (
               <div className="nav-section-title">{section.title}</div>
             )}
-            {section.items.map((item) => (
+            {visibleItems.map((item) => (
               <div key={item.path} className="nav-item-wrapper">
                 <div className="nav-item-row">
                   <NavLink
@@ -279,7 +284,7 @@ export default function Sidebar() {
               </div>
             ))}
           </div>
-        ))}
+        )})}
       </nav>
 
       {/* User info & Theme Toggle */}
@@ -287,9 +292,9 @@ export default function Sidebar() {
         <div style={{ padding: '0.85rem 1rem', borderTop: '2px solid var(--border-primary)', background: 'var(--bg-glass)' }}>
           <div className="sidebar-user" style={{ borderTop: 'none', padding: 0, marginBottom: '0.5rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', flex: 1, gap: '0.65rem' }}>
-              <div className="user-avatar" style={{ border: '2px solid #000', boxShadow: '2px 2px 0px #000', color: '#000', background: 'var(--accent-primary, #fff)' }}>SB</div>
+              <div className="user-avatar" style={{ border: '2px solid #000', boxShadow: '2px 2px 0px #000', color: '#000', background: 'var(--accent-primary, #fff)', cursor: 'pointer' }} onClick={onOpenSettings} title="Settings & Modules">SB</div>
               <div className="user-info">
-                <span className="user-name">Sathvik Bhat</span>
+                <span className="user-name" style={{cursor:'pointer'}} onClick={onOpenSettings}>Sathvik Bhat</span>
                 <span className="user-college">IIIT Bhubaneswar</span>
               </div>
             </div>

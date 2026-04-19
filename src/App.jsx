@@ -6,6 +6,7 @@ import MobileNavbar from './components/layout/MobileNavbar';
 import PageWrapper from './components/layout/PageWrapper';
 import ErrorBoundary from './components/shared/ErrorBoundary';
 import SyncDebugPanel from './components/shared/SyncDebugPanel';
+import Modal from './components/shared/Modal';
 import { useGlobalStore } from './store/globalStore';
 import { useGoogleStore } from './store/googleStore';
 import { useSyncStore, initAutoSync } from './store/syncStore';
@@ -128,9 +129,10 @@ import VaultHome from './pages/vault/VaultHome';
 import './App.css';
 
 function AppContent() {
-  const { sidebarCollapsed, theme, accentColor } = useGlobalStore();
+  const { sidebarCollapsed, theme, accentColor, enabledModules, toggleModule } = useGlobalStore();
   const { isAuthenticated, userEmail } = useGoogleStore();
   const { pullFromCloud } = useSyncStore();
+  const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -179,7 +181,20 @@ function AppContent() {
     <div className="app-layout">
       <SyncDebugPanel />
       <MobileNavbar />
-      <Sidebar />
+      <Sidebar onOpenSettings={() => setIsSettingsOpen(true)} />
+      <Modal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} title="OS Settings">
+         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+           <h3 style={{ fontSize: 'var(--font-sm)', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Modules</h3>
+           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+             {Object.keys(enabledModules).map(mod => (
+               <label key={mod} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', padding: '0.5rem', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)' }}>
+                 <input type="checkbox" checked={enabledModules[mod]} onChange={() => toggleModule(mod)} style={{ accentColor: 'var(--accent-primary)', width: 16, height: 16 }} />
+                 <span style={{ fontSize: 'var(--font-sm)', textTransform: 'capitalize' }}>{mod.replace(/([A-Z])/g, ' $1')}</span>
+               </label>
+             ))}
+           </div>
+         </div>
+      </Modal>
       <main className={`app-main ${sidebarCollapsed ? 'collapsed' : ''}`}>
         <ErrorBoundary>
           <AnimatePresence mode="wait">
