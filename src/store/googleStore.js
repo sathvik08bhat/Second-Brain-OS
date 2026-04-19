@@ -414,7 +414,10 @@ export const useGoogleStore = create(
       name: 'google-store',
       partialize: (state) => ({
         syncPreferences: state.syncPreferences,
-        // Don't persist tokens — they expire and should be refreshed
+        accessToken: state.accessToken,
+        userEmail: state.userEmail,
+        tokenExpiry: state.tokenExpiry,
+        isAuthenticated: state.isAuthenticated,
       }),
     }
   )

@@ -6,6 +6,8 @@ import MobileNavbar from './components/layout/MobileNavbar';
 import PageWrapper from './components/layout/PageWrapper';
 import ErrorBoundary from './components/shared/ErrorBoundary';
 import { useGlobalStore } from './store/globalStore';
+import { useGoogleStore } from './store/googleStore';
+import { useSyncStore, initAutoSync } from './store/syncStore';
 
 // Pages
 import Dashboard from './pages/Dashboard';
@@ -116,11 +118,23 @@ import './App.css';
 
 function AppContent() {
   const { sidebarCollapsed, theme, accentColor } = useGlobalStore();
+  const { isAuthenticated, userEmail } = useGoogleStore();
+  const { pullFromCloud } = useSyncStore();
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     document.documentElement.style.setProperty('--accent-primary', accentColor);
   }, [theme, accentColor]);
+
+  // Synchronize with Firebase on Login/Load
+  useEffect(() => {
+    if (isAuthenticated && userEmail) {
+      pullFromCloud(userEmail).then(() => {
+        // Initialize auto-sync AFTER pulling from cloud
+        initAutoSync(useGoogleStore);
+      });
+    }
+  }, [isAuthenticated, userEmail, pullFromCloud]);
 
   return (
     <div className="app-layout">
