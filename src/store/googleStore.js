@@ -6,7 +6,7 @@ import { persist } from 'zustand/middleware';
 // https://console.cloud.google.com/apis/credentials
 // ─────────────────────────────────────────────────
 const GOOGLE_CLIENT_ID = '535881900428-smoieu90ov1ejv0kupbtj027rij7kvfs.apps.googleusercontent.com';
-const SCOPES = 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/tasks https://www.googleapis.com/auth/fitness.activity.read';
+const SCOPES = 'email profile https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/tasks https://www.googleapis.com/auth/fitness.activity.read';
 
 export const useGoogleStore = create(
   persist(
