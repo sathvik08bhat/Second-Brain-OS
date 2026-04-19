@@ -117,6 +117,7 @@ export const navSections = [
       { path: '/fitness', icon: Dumbbell, label: 'Fitness',
         children: [
           { path: '/fitness', label: 'Overview' },
+          { path: '/fitness/google-fit', label: 'Google Fit Hub' },
           { path: '/fitness/weight', label: 'Weight Log' },
           { path: '/fitness/diet', label: 'Diet Tracker' },
           { path: '/fitness/workouts', label: 'Workouts' },

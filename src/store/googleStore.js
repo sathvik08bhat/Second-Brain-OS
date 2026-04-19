@@ -17,7 +17,8 @@ export const useGoogleStore = create(
       tokenExpiry: null,
       calendarEvents: [],
       googleTasks: [],
-      fitnessSteps: 0, // Store daily steps
+      fitnessSteps: 0,
+      fitHistory: [],
       lastFetched: null,
       syncPreferences: {
         autoSyncTasks: false,
@@ -75,7 +76,8 @@ export const useGoogleStore = create(
           tokenExpiry: null,
           calendarEvents: [],
           googleTasks: [],
-          fitnessSteps: 0
+          fitnessSteps: 0,
+          fitHistory: [],
         });
       },
 
@@ -131,6 +133,73 @@ export const useGoogleStore = create(
         }
 
         set({ fitnessSteps: totalSteps, lastFetched: new Date().toISOString() });
+      },
+
+      // ── Fetch Google Fit 7-Day History ──
+      fetchGoogleFitHistory: async (daysAgo = 6) => {
+        const { accessToken, isTokenValid } = get();
+        if (!isTokenValid()) throw new Error('Not authenticated');
+
+        const now = new Date();
+        now.setHours(0,0,0,0);
+        // Start exactly 'daysAgo' days at midnight
+        const startTimeMillis = new Date(now.getTime() - (daysAgo * 86400000)).getTime();
+        const endTimeMillis = new Date().getTime();
+
+        // Fault-tolerant separate fetcher so missing sources don't crash the entire panel
+        const makeQuery = async (dataTypeName, dataSourceId) => {
+           const res = await fetch('https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate', {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                 aggregateBy: [{ dataTypeName, ...(dataSourceId ? { dataSourceId } : {}) }],
+                 bucketByTime: { durationMillis: 86400000 },
+                 startTimeMillis,
+                 endTimeMillis
+              })
+           });
+           if (!res.ok) throw new Error(dataTypeName + " failed");
+           return res.json();
+        };
+
+        // Fire 4 parallel queries. allSettled guarantees we get the valid ones even if heart_minutes throws errors.
+        const results = await Promise.allSettled([
+           makeQuery("com.google.step_count.delta", "derived:com.google.step_count.delta:com.google.android.gms:estimated_steps"),
+           makeQuery("com.google.heart_minutes", "derived:com.google.heart_minutes:com.google.android.gms:merge_heart_minutes"),
+           makeQuery("com.google.active_minutes", "derived:com.google.active_minutes:com.google.android.gms:merge_active_minutes"),
+           makeQuery("com.google.calories.expended", "derived:com.google.calories.expended:com.google.android.gms:merge_calories_expended")
+        ]);
+
+        const historyMap = {}; 
+        
+        // Initialize the 7 chronological days
+        for(let i=daysAgo; i>=0; i--) {
+           const d = new Date(now.getTime() - (i * 86400000));
+           const dateStr = d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric' });
+           historyMap[dateStr] = { date: dateStr, steps: 0, heartPoints: 0, activeMinutes: 0, calories: 0 };
+        }
+
+        // Generic parser for buckets
+        const parseMetric = (promiseResult, keyProp, valExtractFn) => {
+            if (promiseResult.status === 'fulfilled' && promiseResult.value.bucket) {
+                promiseResult.value.bucket.forEach(b => {
+                    const d = new Date(parseInt(b.startTimeMillis));
+                    const dateStr = d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric' });
+                    if (historyMap[dateStr] && b.dataset?.[0]?.point?.[0]) {
+                        historyMap[dateStr][keyProp] = valExtractFn(b.dataset[0].point[0].value[0]);
+                    }
+                });
+            }
+        };
+
+        // Inject successful data
+        parseMetric(results[0], 'steps', val => val.intVal || 0);
+        parseMetric(results[1], 'heartPoints', val => Math.round(val.fpVal || val.intVal || 0));
+        parseMetric(results[2], 'activeMinutes', val => val.intVal || 0);
+        parseMetric(results[3], 'calories', val => Math.round(val.fpVal || val.intVal || 0));
+
+        const historyData = Object.values(historyMap);
+        set({ fitHistory: historyData, lastFetched: new Date().toISOString() });
       },
 
       // ── Fetch Calendar Events ──

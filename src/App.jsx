@@ -70,6 +70,7 @@ import WeightLog from './pages/fitness/WeightLog';
 import DietTracker from './pages/fitness/DietTracker';
 import Workouts from './pages/fitness/Workouts';
 import CardioLog from './pages/fitness/CardioLog';
+import GoogleFitHub from './pages/fitness/GoogleFitHub';
 
 // Personal
 import PersonalHome from './pages/personal/PersonalHome';
@@ -191,6 +192,7 @@ function AppContent() {
             <Route path="/fitness/diet" element={<DietTracker />} />
             <Route path="/fitness/workouts" element={<Workouts />} />
             <Route path="/fitness/cardio" element={<CardioLog />} />
+            <Route path="/fitness/google-fit" element={<GoogleFitHub />} />
 
             {/* Personal */}
             <Route path="/personal" element={<PersonalHome />} />

@@ -15,6 +15,7 @@ export default function FitnessHome() {
   const progress = Math.min(100, Math.max(0, Math.round((weightLost / (89 - targetWeight)) * 100)));
 
   const subPages = [
+    { path: '/fitness/google-fit', icon: Activity, title: 'Google Fit Hub', desc: 'Historical wellness APIs', color: '#3b82f6' },
     { path: '/fitness/weight', icon: Scale, title: 'Weight Tracker', desc: 'Log daily weight & trends', color: '#8b5cf6' },
     { path: '/fitness/diet', icon: Utensils, title: 'Diet & Calories', desc: 'Meals and macros', color: '#10b981' },
     { path: '/fitness/workouts', icon: Dumbbell, title: 'Gym Workouts', desc: 'Progressive overload', color: '#f59e0b' },
