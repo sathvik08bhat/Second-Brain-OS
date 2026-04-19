@@ -127,25 +127,55 @@ function AppContent() {
     document.documentElement.style.setProperty('--accent-primary', accentColor);
   }, [theme, accentColor]);
 
-  // Recovery: if authenticated but email is missing, try to fetch it
+  const tokenExpiry = useGoogleStore((s) => s.tokenExpiry);
+
+  // Recovery: if authenticated but email is missing, try to fix it
   useEffect(() => {
-    if (isAuthenticated && !userEmail && accessToken) {
-      console.log('[App] Auth without email detected — attempting recovery...');
-      fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      })
-        .then(r => r.json())
-        .then(info => {
-          if (info.email) {
-            console.log('[App] Email recovered:', info.email);
-            useGoogleStore.setState({ userEmail: info.email });
-          } else {
-            console.error('[App] Email recovery failed — token might be expired. info:', info);
-          }
-        })
-        .catch(err => console.error('[App] Email recovery network error:', err));
+    if (!isAuthenticated || userEmail) return; // all good or not logged in
+
+    // Token expired? Clear everything and force fresh login
+    if (!accessToken || (tokenExpiry && Date.now() > tokenExpiry)) {
+      console.log('[App] Token expired with no email. Clearing stale auth.');
+      useGoogleStore.setState({
+        isAuthenticated: false,
+        accessToken: null,
+        userEmail: null,
+        tokenExpiry: null,
+      });
+      return;
     }
-  }, [isAuthenticated, userEmail, accessToken]);
+
+    // Token still valid? Try to recover email
+    console.log('[App] Auth without email — recovering...');
+    fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    })
+      .then(r => r.json())
+      .then(info => {
+        if (info.email) {
+          console.log('[App] Email recovered:', info.email);
+          useGoogleStore.setState({ userEmail: info.email });
+        } else {
+          // Token is invalid/revoked even though not "expired" — force re-login
+          console.error('[App] Token invalid. Clearing auth.');
+          useGoogleStore.setState({
+            isAuthenticated: false,
+            accessToken: null,
+            userEmail: null,
+            tokenExpiry: null,
+          });
+        }
+      })
+      .catch(() => {
+        console.error('[App] Network error recovering email. Clearing auth.');
+        useGoogleStore.setState({
+          isAuthenticated: false,
+          accessToken: null,
+          userEmail: null,
+          tokenExpiry: null,
+        });
+      });
+  }, [isAuthenticated, userEmail, accessToken, tokenExpiry]);
 
   // Synchronize with Firebase on Login/Load
   useEffect(() => {
