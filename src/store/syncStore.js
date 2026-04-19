@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 
 import { useAcademicStore } from './academicStore';
@@ -95,6 +95,7 @@ export const useSyncStore = create((set, get) => ({
 
 // Setup automatic sync observer
 let syncInitialized = false;
+let isHydratingFromCloud = false;
 
 export const initAutoSync = (googleStoreHook) => {
   if (syncInitialized) return;
@@ -103,6 +104,8 @@ export const initAutoSync = (googleStoreHook) => {
   let debounceTimeout;
   
   const handleStateChange = () => {
+    if (isHydratingFromCloud) return; // Prevent loop: don't push if change came from cloud
+    
     const email = googleStoreHook.getState().userEmail;
     if (!email) return;
     
@@ -112,10 +115,34 @@ export const initAutoSync = (googleStoreHook) => {
     }, 4000); // Debounce saves by 4 seconds to reduce Firebase writes
   };
 
-  // Subscribing to all stores to capture changes
+  // Subscribing to all stores to capture local changes
   Object.values(allStores).forEach(store => {
     store.subscribe(() => {
         handleStateChange();
     });
   });
+
+  // Listen to remote changes in real-time
+  const email = googleStoreHook.getState().userEmail;
+  if (email) {
+    onSnapshot(doc(db, 'users', email), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        
+        isHydratingFromCloud = true;
+        
+        Object.keys(allStores).forEach(key => {
+          if (data[key]) {
+            allStores[key].setState(data[key]);
+          }
+        });
+        
+        // Reset flag after Zustand state changes have settled
+        setTimeout(() => {
+            isHydratingFromCloud = false;
+            useSyncStore.setState({ lastSynced: Date.now() });
+        }, 1000);
+      }
+    });
+  }
 };
