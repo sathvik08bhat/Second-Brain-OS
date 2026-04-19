@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import Sidebar from './components/layout/Sidebar';
+import MobileNavbar from './components/layout/MobileNavbar';
+import PageWrapper from './components/layout/PageWrapper';
 import ErrorBoundary from './components/shared/ErrorBoundary';
 import { useGlobalStore } from './store/globalStore';
 
@@ -106,6 +108,9 @@ import TravelHistory from './pages/travel/TravelHistory';
 import GoogleIntegration from './pages/settings/GoogleIntegration';
 import CalendarPage from './pages/settings/CalendarPage';
 
+// Vault
+import VaultHome from './pages/vault/VaultHome';
+
 import './App.css';
 
 function AppContent() {
@@ -118,11 +123,9 @@ function AppContent() {
 
   return (
     <div className="app-layout">
+      <MobileNavbar />
       <Sidebar />
-      <main
-        className="app-main"
-        style={{ marginLeft: sidebarCollapsed ? 70 : 260 }}
-      >
+      <main className={`app-main ${sidebarCollapsed ? 'collapsed' : ''}`}>
         <ErrorBoundary>
           <AnimatePresence mode="wait">
             <Routes>
@@ -221,6 +224,9 @@ function AppContent() {
             <Route path="/travel" element={<TravelHome />} />
             <Route path="/travel/planner" element={<Planner />} />
             <Route path="/travel/history" element={<TravelHistory />} />
+
+            {/* Vault */}
+            <Route path="/vault/*" element={<VaultHome />} />
           </Routes>
         </AnimatePresence>
         </ErrorBoundary>

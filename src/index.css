@@ -163,6 +163,38 @@ body {
   letter-spacing: -0.01em;
 }
 
+.app-main {
+  flex: 1;
+  min-height: 100vh;
+  margin-left: 260px;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.app-main.collapsed {
+  margin-left: 70px;
+}
+
+.mobile-only-flex {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .app-layout {
+    flex-direction: column;
+  }
+  .app-main {
+    margin-left: 0 !important;
+    padding-top: 60px; /* Space for mobile navbar */
+  }
+  .sidebar {
+    display: none !important;
+  }
+  .mobile-only-flex {
+    display: flex !important;
+  }
+}
+
 #root {
   min-height: 100vh;
 }

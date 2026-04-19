@@ -186,31 +186,32 @@
 /* Toggle */
 .sidebar-toggle {
   position: absolute;
-  top: 20px;
-  right: -12px;
-  width: 24px;
-  height: 24px;
+  top: 14px;
+  right: -14px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-secondary);
-  color: var(--text-secondary);
+  background: var(--bg-card);
+  border: 2px solid var(--border-primary);
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 10;
+  z-index: 100;
   transition: all var(--transition-fast);
-  opacity: 0;
-}
-
-.sidebar:hover .sidebar-toggle {
   opacity: 1;
+  box-shadow: 2px 2px 0px #000;
 }
 
 .sidebar-toggle:hover {
   background: var(--accent-purple);
-  color: white;
-  border-color: var(--accent-purple);
+  color: #fff;
+  transform: translate(-1px, -1px);
+}
+
+.sidebar.collapsed .sidebar-toggle {
+  right: -14px;
 }
 
 /* User */

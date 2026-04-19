@@ -5,12 +5,12 @@ import {
   LayoutDashboard, GraduationCap, Code2, BarChart3, Rocket,
   Briefcase, Users, Dumbbell, Brain, Palette, Plane,
   ChevronLeft, ChevronRight, ChevronDown, Zap, Inbox, Sun, Moon,
-  CheckCircle, Wallet, Heart, Shield, Cpu, Link2, CalendarDays
+  CheckCircle, Wallet, Heart, Shield, Cpu, Link2, CalendarDays, Lock
 } from 'lucide-react';
 import { useGlobalStore } from '../../store/globalStore';
 import './Sidebar.css';
 
-const navSections = [
+export const navSections = [
   {
     title: 'OVERVIEW',
     items: [
@@ -138,6 +138,7 @@ const navSections = [
           { path: '/leadership/resources', label: 'Resources' },
         ]
       },
+      { path: '/vault', icon: Lock, label: 'Private Vault' },
       { path: '/personal', icon: Brain, label: 'Personal Dev',
         children: [
           { path: '/personal', label: 'Overview' },
@@ -180,23 +181,32 @@ export default function Sidebar() {
     >
       {/* Logo */}
       <div className="sidebar-logo">
-        <div className="logo-icon">
-          <Zap size={20} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%' }}>
+          <div 
+            className="logo-icon" 
+            onClick={toggleSidebar} 
+            style={{ cursor: 'pointer', transition: 'transform 0.2s' }}
+            title={sidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+          >
+            <Zap size={20} />
+          </div>
+          <AnimatePresence>
+            {!sidebarCollapsed && (
+              <motion.div
+                className="logo-text"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.2 }}
+                onClick={toggleSidebar}
+                style={{ cursor: 'pointer' }}
+              >
+                <span className="logo-title">Second Brain</span>
+                <span className="logo-subtitle">OS</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-        <AnimatePresence>
-          {!sidebarCollapsed && (
-            <motion.div
-              className="logo-text"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-              transition={{ duration: 0.2 }}
-            >
-              <span className="logo-title">Second Brain</span>
-              <span className="logo-subtitle">OS</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
 
       {/* Navigation */}
@@ -271,16 +281,11 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      {/* Collapse Toggle */}
-      <button className="sidebar-toggle" onClick={toggleSidebar}>
-        {sidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-      </button>
-
       {/* User info & Theme Toggle */}
       {!sidebarCollapsed && (
         <div style={{ padding: '0.85rem 1rem', borderTop: '2px solid var(--border-primary)', background: 'var(--bg-glass)' }}>
           <div className="sidebar-user" style={{ borderTop: 'none', padding: 0, marginBottom: '0.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', flex: 1, gap: '0.65rem' }}>
               <div className="user-avatar" style={{ border: '2px solid #000', boxShadow: '2px 2px 0px #000', color: '#000', background: 'var(--accent-primary, #fff)' }}>SB</div>
               <div className="user-info">
                 <span className="user-name">Sathvik Bhat</span>

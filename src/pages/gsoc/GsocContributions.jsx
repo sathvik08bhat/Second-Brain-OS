@@ -7,7 +7,7 @@ import { useGsocStore } from '../../store/gsocStore';
 import { formatDate } from '../../utils/helpers';
 
 export default function GsocContributions() {
-  const { contributions, addContribution, updateContribution, deleteContribution } = useGsocStore();
+  const { contributions, addContribution, updateContribution, deleteContribution, githubUsername, githubStats } = useGsocStore();
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState(null);
   const [form, setForm] = useState({ repo: '', type: 'pr', title: '', url: '', status: 'open', date: '', notes: '' });
@@ -24,8 +24,68 @@ export default function GsocContributions() {
       <div className="page-header">
         <h1><span className="gradient-text">🔀 Contributions</span></h1>
         <p>Track your open source contributions — PRs, issues, commits</p>
-        <div className="header-actions"><button className="btn-primary" onClick={() => setShowModal(true)}><Plus size={16} /> Add Contribution</button></div>
+        <div className="header-actions">
+          {githubUsername && <button className="btn-secondary" onClick={() => useGsocStore.getState().setGithubUsername('')}>Disconnect GitHub</button>}
+          <button className="btn-primary" onClick={() => setShowModal(true)}>
+            <Plus size={16} /> Add Contribution
+          </button>
+        </div>
       </div>
+
+      {!githubUsername ? (
+        <div className="glass-card" style={{ padding: '2rem', textAlign: 'center', marginBottom: '2rem', background: 'var(--bg-glass)', border: '2px dashed var(--accent-purple)' }}>
+           <GitPullRequest size={36} color="var(--accent-purple)" style={{ marginBottom: '1rem' }} />
+           <h3>Connect GitHub</h3>
+           <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', maxWidth: 400, margin: '0 auto 1.5rem' }}>
+             Sync your public GitHub profile to automatically pull total PR counts, followers, and repositories to track your open source journey.
+           </p>
+           <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+              <input 
+                id="gh-user-input"
+                className="input-primary" 
+                placeholder="GitHub Username" 
+                style={{ width: '250px' }} 
+              />
+              <button 
+                className="btn-primary" 
+                onClick={() => {
+                  const val = document.getElementById('gh-user-input').value;
+                  if (val) {
+                    useGsocStore.getState().setGithubUsername(val);
+                    useGsocStore.getState().fetchGithubStats();
+                  }
+                }}
+              >
+                Connect
+              </button>
+           </div>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+           <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <img src={githubStats?.avatar} alt="Avatar" style={{ width: 48, height: 48, borderRadius: '50%', border: '2px solid var(--border-primary)' }} />
+              <div>
+                <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>{githubStats?.name || githubUsername}</div>
+                <a href={`https://github/${githubUsername}`} target="_blank" rel="noreferrer" style={{ fontSize: '0.8rem', color: 'var(--accent-purple)', textDecoration: 'none' }}>@{githubUsername}</a>
+              </div>
+           </div>
+           
+           <div className="glass-card" style={{ padding: '1.5rem' }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', fontWeight: 600, letterSpacing: '0.05em' }}>TOTAL PUBLIC PRs</div>
+              <div style={{ fontSize: '2rem', fontWeight: 800, color: '#10b981' }}>{githubStats?.totalPRs || 0}</div>
+           </div>
+           
+           <div className="glass-card" style={{ padding: '1.5rem' }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', fontWeight: 600, letterSpacing: '0.05em' }}>PUBLIC REPOS</div>
+              <div style={{ fontSize: '2rem', fontWeight: 800, color: '#06b6d4' }}>{githubStats?.publicRepos || 0}</div>
+           </div>
+           
+           <div className="glass-card" style={{ padding: '1.5rem' }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', fontWeight: 600, letterSpacing: '0.05em' }}>FOLLOWERS</div>
+              <div style={{ fontSize: '2rem', fontWeight: 800, color: '#f59e0b' }}>{githubStats?.followers || 0}</div>
+           </div>
+        </div>
+      )}
 
       {contributions.length === 0 ? (
         <div className="empty-state"><GitPullRequest size={48} /><h3>No Contributions Yet</h3><p>Start contributing to open source repos and track them here.</p><button className="btn-primary" onClick={() => setShowModal(true)}><Plus size={16} /> Add First</button></div>

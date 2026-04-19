@@ -12,6 +12,51 @@ export const useGsocStore = create(
       applications: [],
       milestones: [],
 
+      // Github Sync
+      githubUsername: '',
+      githubStats: null,
+      isFetchingGithub: false,
+      githubError: null,
+      
+      setGithubUsername: (username) => set({ githubUsername: username }),
+
+      fetchGithubStats: async () => {
+        const username = get().githubUsername;
+        if (!username) {
+          set({ githubError: 'Please enter a GitHub username.' });
+          return;
+        }
+
+        set({ isFetchingGithub: true, githubError: null });
+
+        try {
+          // Fetch basic profile
+          const userRes = await fetch(`https://api.github.com/users/${username}`);
+          if (!userRes.ok) throw new Error('GitHub User not found');
+          const userData = await userRes.json();
+
+          // Fetch PR count manually via search API
+          const prRes = await fetch(`https://api.github.com/search/issues?q=author:${username}+type:pr+is:public`);
+          const prData = prRes.ok ? await prRes.json() : { total_count: 0 };
+
+          set({ 
+            githubStats: {
+              followers: userData.followers || 0,
+              publicRepos: userData.public_repos || 0,
+              totalPRs: prData.total_count || 0,
+              avatar: userData.avatar_url || '',
+              name: userData.name || username
+            },
+            isFetchingGithub: false
+          });
+        } catch (error) {
+          set({
+            isFetchingGithub: false,
+            githubError: error.message || 'Error fetching GitHub stats',
+          });
+        }
+      },
+
       // Skills
       addSkill: (skill) => set((s) => ({ skills: [...s.skills, { id: generateId(), createdAt: new Date().toISOString(), progress: 0, level: 'beginner', ...skill }] })),
       updateSkill: (id, u) => set((s) => ({ skills: s.skills.map((sk) => sk.id === id ? { ...sk, ...u } : sk) })),
@@ -42,6 +87,18 @@ export const useGsocStore = create(
       updateMilestone: (id, u) => set((s) => ({ milestones: s.milestones.map((m) => m.id === id ? { ...m, ...u } : m) })),
       deleteMilestone: (id) => set((s) => ({ milestones: s.milestones.filter((m) => m.id !== id) })),
     }),
-    { name: 'gsoc-store' }
+    { 
+      name: 'gsoc-store',
+      partialize: (state) => ({
+        skills: state.skills,
+        contributions: state.contributions,
+        organizations: state.organizations,
+        resources: state.resources,
+        applications: state.applications,
+        milestones: state.milestones,
+        githubUsername: state.githubUsername,
+        githubStats: state.githubStats,
+      })
+    }
   )
 );

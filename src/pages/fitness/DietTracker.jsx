@@ -39,22 +39,48 @@ export default function DietTracker() {
 
   const mealColors = { breakfast: 'badge-yellow', lunch: 'badge-green', dinner: 'badge-blue', snack: 'badge-purple' };
 
+  const [isSearching, setIsSearching] = useState(false);
+
+  const searchFoodMacros = async () => {
+    if (!form.food) return;
+    setIsSearching(true);
+    try {
+      const res = await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(form.food)}&search_simple=1&action=process&json=1`);
+      const data = await res.json();
+      if (data.products && data.products.length > 0) {
+        const p = data.products[0].nutriments;
+        setForm(prev => ({
+          ...prev,
+          calories: p['energy-kcal_100g'] || p['energy-kcal'] || prev.calories,
+          protein: p['proteins_100g'] || p['proteins'] || prev.protein,
+          carbs: p['carbohydrates_100g'] || p['carbohydrates'] || prev.carbs,
+          fats: p['fat_100g'] || p['fat'] || prev.fats,
+        }));
+      } else {
+        alert('Food not found in OpenFoodFacts database. Please enter macros manually.');
+      }
+    } catch(err) {
+      alert('Failed to search database. Try again later.');
+    }
+    setIsSearching(false);
+  };
+
   return (
     <PageWrapper>
       <div className="page-header">
         <h1><span className="gradient-text">🥗 Diet Tracker</span></h1>
         <p>Log your meals, track calories, and monitor macros</p>
         <div className="header-actions">
-          <input type="date" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} style={{ padding: '0.4rem 0.8rem', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)' }} />
+          <input type="date" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} className="input-primary" style={{ padding: '0.4rem 0.8rem' }} />
           <button className="btn-primary" onClick={() => setShowModal(true)}><Plus size={16} /> Log Meal</button>
         </div>
       </div>
 
       <div className="grid-4" style={{ marginBottom: 'var(--space-xl)' }}>
-        <div className="glass-card" style={{ padding: '1.25rem', textAlign: 'center' }}><div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)' }}>Total Calories</div><div style={{ fontSize: 'var(--font-2xl)', fontWeight: 800, color: 'var(--accent-cyan)' }}>{totalCals}</div></div>
-        <div className="glass-card" style={{ padding: '1.25rem', textAlign: 'center' }}><div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)' }}>Protein</div><div style={{ fontSize: 'var(--font-2xl)', fontWeight: 800, color: '#ef4444' }}>{totalProtein}g</div></div>
-        <div className="glass-card" style={{ padding: '1.25rem', textAlign: 'center' }}><div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)' }}>Carbs</div><div style={{ fontSize: 'var(--font-2xl)', fontWeight: 800, color: '#f59e0b' }}>{totalCarbs}g</div></div>
-        <div className="glass-card" style={{ padding: '1.25rem', textAlign: 'center' }}><div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)' }}>Fats</div><div style={{ fontSize: 'var(--font-2xl)', fontWeight: 800, color: '#3b82f6' }}>{totalFats}g</div></div>
+        <div className="glass-card" style={{ padding: '1.25rem', textAlign: 'center' }}><div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)' }}>Total Calories</div><div style={{ fontSize: 'var(--font-2xl)', fontWeight: 800, color: 'var(--accent-cyan)' }}>{Math.round(totalCals)}</div></div>
+        <div className="glass-card" style={{ padding: '1.25rem', textAlign: 'center' }}><div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)' }}>Protein</div><div style={{ fontSize: 'var(--font-2xl)', fontWeight: 800, color: '#ef4444' }}>{Math.round(totalProtein)}g</div></div>
+        <div className="glass-card" style={{ padding: '1.25rem', textAlign: 'center' }}><div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)' }}>Carbs</div><div style={{ fontSize: 'var(--font-2xl)', fontWeight: 800, color: '#f59e0b' }}>{Math.round(totalCarbs)}g</div></div>
+        <div className="glass-card" style={{ padding: '1.25rem', textAlign: 'center' }}><div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)' }}>Fats</div><div style={{ fontSize: 'var(--font-2xl)', fontWeight: 800, color: '#3b82f6' }}>{Math.round(totalFats)}g</div></div>
       </div>
 
       <div className="grid-2">
@@ -66,7 +92,7 @@ export default function DietTracker() {
                 <motion.tr key={log.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}>
                   <td><span className={`badge ${mealColors[log.mealType]}`}>{log.mealType}</span></td>
                   <td style={{ fontWeight: 600 }}>{log.food}</td>
-                  <td style={{ color: 'var(--accent-cyan)', fontWeight: 700 }}>{log.calories}</td>
+                  <td style={{ color: 'var(--accent-cyan)', fontWeight: 700 }}>{Math.round(log.calories)}</td>
                   <td><div style={{ display: 'flex', gap: '0.25rem' }}><button className="btn-icon" onClick={() => startEdit(log)}><Edit3 size={15} /></button><button className="btn-icon" onClick={() => deleteMeal(log.id)} style={{ color: 'var(--accent-red)' }}><Trash2 size={15} /></button></div></td>
                 </motion.tr>
               ))}
@@ -93,15 +119,24 @@ export default function DietTracker() {
       <Modal isOpen={showModal} onClose={resetForm} title={editId ? 'Edit Meal' : 'Log Meal'}>
         <form onSubmit={handleSubmit}>
           <div className="form-grid">
-            <div className="form-group"><label>Date *</label><input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} required /></div>
-            <div className="form-group"><label>Meal Type</label><select value={form.mealType} onChange={(e) => setForm({ ...form, mealType: e.target.value })}><option value="breakfast">Breakfast</option><option value="lunch">Lunch</option><option value="dinner">Dinner</option><option value="snack">Snack</option></select></div>
-            <div className="form-group full-width"><label>Food Item *</label><input value={form.food} onChange={(e) => setForm({ ...form, food: e.target.value })} required placeholder="e.g. Chicken breast with rice" /></div>
-            <div className="form-group full-width"><label>Calories</label><input type="number" value={form.calories} onChange={(e) => setForm({ ...form, calories: e.target.value })} required /></div>
-            <div className="form-group"><label>Protein (g)</label><input type="number" value={form.protein} onChange={(e) => setForm({ ...form, protein: e.target.value })} /></div>
-            <div className="form-group"><label>Carbs (g)</label><input type="number" value={form.carbs} onChange={(e) => setForm({ ...form, carbs: e.target.value })} /></div>
-            <div className="form-group"><label>Fats (g)</label><input type="number" value={form.fats} onChange={(e) => setForm({ ...form, fats: e.target.value })} /></div>
+            <div className="form-group"><label>Date *</label><input type="date" className="input-primary" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} required /></div>
+            <div className="form-group"><label>Meal Type</label><select className="input-primary" value={form.mealType} onChange={(e) => setForm({ ...form, mealType: e.target.value })}><option value="breakfast">Breakfast</option><option value="lunch">Lunch</option><option value="dinner">Dinner</option><option value="snack">Snack</option></select></div>
+            <div className="form-group full-width">
+               <label>Food Item *</label>
+               <div style={{ display: 'flex', gap: '0.5rem' }}>
+                 <input className="input-primary" style={{ flex: 1 }} value={form.food} onChange={(e) => setForm({ ...form, food: e.target.value })} required placeholder="e.g. Apple or Chicken Breast" />
+                 <button type="button" className="btn-secondary" onClick={searchFoodMacros} disabled={isSearching || !form.food}>
+                   {isSearching ? '...' : 'Auto-Calculate'}
+                 </button>
+               </div>
+               <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.25rem' }}>Auto-calculate pulls approx values for 100g using the free OpenFoodFacts database.</div>
+            </div>
+            <div className="form-group"><label>Calories</label><input type="number" step="0.1" className="input-primary" value={form.calories} onChange={(e) => setForm({ ...form, calories: e.target.value })} required /></div>
+            <div className="form-group"><label>Protein (g)</label><input type="number" step="0.1" className="input-primary" value={form.protein} onChange={(e) => setForm({ ...form, protein: e.target.value })} /></div>
+            <div className="form-group"><label>Carbs (g)</label><input type="number" step="0.1" className="input-primary" value={form.carbs} onChange={(e) => setForm({ ...form, carbs: e.target.value })} /></div>
+            <div className="form-group"><label>Fats (g)</label><input type="number" step="0.1" className="input-primary" value={form.fats} onChange={(e) => setForm({ ...form, fats: e.target.value })} /></div>
           </div>
-          <div className="modal-actions"><button type="submit" className="btn-primary"><Check size={16} /> Save</button></div>
+          <div className="modal-actions"><button type="submit" className="btn-primary"><Check size={16} /> Save Meal</button></div>
         </form>
       </Modal>
     </PageWrapper>

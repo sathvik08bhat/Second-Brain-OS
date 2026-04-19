@@ -45,7 +45,7 @@ export const useDsaStore = create(
         set({ isFetching: true, fetchError: null });
 
         try {
-          const res = await fetch(`https://alfa-leetcode-api.onrender.com/${username}`);
+          const res = await fetch(`https://alfa-leetcode-api.onrender.com/userProfile/${username}`);
           if (!res.ok) throw new Error('Failed to fetch from LeetCode API');
           
           const data = await res.json();
