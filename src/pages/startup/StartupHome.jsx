@@ -1,43 +1,143 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Rocket, Lightbulb, Kanban, DollarSign, ArrowRight } from 'lucide-react';
+import { 
+  Building2, BookOpen, Target, 
+  Map, Kanban, Bug, Server,
+  Rocket, Image, Users,
+  Handshake, FileText, 
+  UserCircle, CheckSquare, Calendar,
+  PieChart, Activity, DollarSign
+} from 'lucide-react';
 import PageWrapper from '../../components/layout/PageWrapper';
-import StatsCard from '../../components/shared/StatsCard';
-import { useStartupStore } from '../../store/startupStore';
+
+// Define the 6 overarching departments
+const DEPARTMENTS = [
+  {
+    title: '🧠 1. Executive Board',
+    subtitle: 'Command Center & Strategy',
+    color: '#8b5cf6', // Purple
+    dbs: [
+      { id: 'okrs', title: 'OKRs & Strategy', icon: Target },
+      { id: 'b2cMatrix', title: 'The B2C Matrix', icon: Building2 }, // Validate ideas
+      { id: 'companyWiki', title: 'Company Wiki', icon: BookOpen },
+    ]
+  },
+  {
+    title: '💻 2. Engineering & Product',
+    subtitle: 'Build & Ship',
+    color: '#3b82f6', // Blue
+    dbs: [
+      { id: 'productRoadmap', title: 'Product Roadmap', icon: Map },
+      { id: 'tasks', title: 'Sprint Kanban', icon: Kanban, isCustom: true, path: '/startup/tasks' },
+      { id: 'bugTracker', title: 'Bug Tracker', icon: Bug },
+      { id: 'architectureDB', title: 'Architecture DB', icon: Server },
+    ]
+  },
+  {
+    title: '📈 3. Growth & Marketing',
+    subtitle: 'Acquisition & Brand',
+    color: '#ec4899', // Pink
+    dbs: [
+      { id: 'gtmCampaigns', title: 'GTM Campaigns', icon: Rocket },
+      { id: 'assetLibrary', title: 'Asset Library', icon: Image },
+      { id: 'userAcquisitionLogs', title: 'User Acquisition', icon: Users },
+    ]
+  },
+  {
+    title: '🤝 4. Sales & B2B',
+    subtitle: 'Revenue Pipeline',
+    color: '#f59e0b', // Amber
+    dbs: [
+      { id: 'dealPipeline', title: 'Deal Pipeline', icon: Handshake },
+      { id: 'partnerDirectory', title: 'Partner Directory', icon: FileText },
+    ]
+  },
+  {
+    title: '💼 5. Operations & HR',
+    subtitle: 'Internal Systems',
+    color: '#10b981', // Emerald
+    dbs: [
+      { id: 'team', title: 'Team Roster & Access', icon: UserCircle },
+      { id: 'sopDB', title: 'SOP Hub', icon: CheckSquare },
+      { id: 'meetingNotes', title: 'Meeting Notes', icon: Calendar },
+    ]
+  },
+  {
+    title: '🏦 6. Finance & Investors',
+    subtitle: 'Capital & Runway',
+    color: '#14b8a6', // Teal
+    dbs: [
+      { id: 'capTable', title: 'Cap Table & Equity', icon: PieChart },
+      { id: 'finances', title: 'Runway & Burn Rate', icon: Activity, isCustom: true, path: '/startup/finance' },
+      { id: 'investorPipeline', title: 'Investor Pipeline', icon: DollarSign },
+    ]
+  }
+];
 
 export default function StartupHome() {
-  const { ideas, tasks, finances } = useStartupStore();
-
-  const totalIncome = finances.filter(f => f.type === 'income').reduce((s, f) => s + (f.amount || 0), 0);
-  const totalExpense = finances.filter(f => f.type === 'expense').reduce((s, f) => s + (f.amount || 0), 0);
-
-  const subPages = [
-    { path: '/startup/ideas', icon: Lightbulb, title: 'Idea Lab', desc: 'Brainstorm and validate', color: '#f59e0b' },
-    { path: '/startup/tasks', icon: Kanban, title: 'Sprint Board', desc: 'Manage development tasks', color: '#8b5cf6' },
-    { path: '/startup/finance', icon: DollarSign, title: 'Finance Tracker', desc: 'Income, expenses, runway', color: '#10b981' },
-  ];
-
   return (
     <PageWrapper>
-      <div className="page-header">
+      <div className="page-header" style={{ marginBottom: '2rem' }}>
         <h1><span className="gradient-text">🚀 Startup OS</span></h1>
-        <p>From ideas to execution — track your venture development</p>
+        <p>Your comprehensive 6-department company brain.</p>
       </div>
 
-      <div className="grid-3" style={{ marginBottom: 'var(--space-xl)' }}>
-        <StatsCard icon={Lightbulb} label="Ideas" value={ideas.length} subtitle="In the lab" color="#f59e0b" />
-        <StatsCard icon={Kanban} label="Tasks" value={tasks.filter(t => t.status !== 'done').length} subtitle="Pending tasks" color="#8b5cf6" delay={0.1} />
-        <StatsCard icon={DollarSign} label="Net Cashflow" value={`₹${totalIncome - totalExpense}`} subtitle={totalIncome >= totalExpense ? 'Positive' : 'Burn rate active'} color={totalIncome >= totalExpense ? '#10b981' : '#ef4444'} delay={0.2} />
-      </div>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
+        gap: '1.5rem',
+        paddingBottom: '2rem'
+      }}>
+        {DEPARTMENTS.map((dept, i) => (
+          <motion.div 
+            key={dept.title}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+            className="glass-card"
+            style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}
+          >
+            {/* Department Head */}
+            <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
+              <div style={{ fontSize: '1.1rem', fontWeight: 700, color: dept.color, marginBottom: '0.25rem' }}>
+                {dept.title}
+              </div>
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)' }}>
+                {dept.subtitle}
+              </div>
+            </div>
 
-      <div className="grid-auto">
-        {subPages.map((page, i) => (
-          <motion.div key={page.path} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
-            <Link to={page.path} className="glass-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1.25rem', textDecoration: 'none', color: 'var(--text-primary)' }}>
-              <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-md)', background: `${page.color}15`, color: page.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><page.icon size={22} /></div>
-              <div style={{ flex: 1 }}><div style={{ fontWeight: 700 }}>{page.title}</div><div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)' }}>{page.desc}</div></div>
-              <ArrowRight size={16} style={{ color: 'var(--text-muted)' }} />
-            </Link>
+            {/* Sub-Databases */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {dept.dbs.map(db => (
+                <Link 
+                  key={db.id}
+                  to={db.isCustom ? db.path : `/startup/db/${db.id}`} 
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '0.75rem',
+                    borderRadius: 'var(--radius-sm)',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    textDecoration: 'none',
+                    color: 'var(--text-secondary)',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = `${dept.color}15`;
+                    e.currentTarget.style.color = 'var(--text-primary)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                    e.currentTarget.style.color = 'var(--text-secondary)';
+                  }}
+                >
+                  <db.icon size={16} color={dept.color} />
+                  <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>{db.title}</span>
+                </Link>
+              ))}
+            </div>
           </motion.div>
         ))}
       </div>

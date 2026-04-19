@@ -57,6 +57,7 @@ import DsaVideos from './pages/dsa/DsaVideos';
 
 // Startup
 import StartupHome from './pages/startup/StartupHome';
+import StartupDatabase from './pages/startup/StartupDatabase';
 import IdeaLab from './pages/startup/IdeaLab';
 import SprintBoard from './pages/startup/SprintBoard';
 import Finance from './pages/startup/Finance';
@@ -220,6 +221,7 @@ function AppContent() {
 
             {/* Startup */}
             <Route path="/startup" element={<StartupHome />} />
+            <Route path="/startup/db/:dbId" element={<StartupDatabase />} />
             <Route path="/startup/ideas" element={<IdeaLab />} />
             <Route path="/startup/tasks" element={<SprintBoard />} />
             <Route path="/startup/finance" element={<Finance />} />
