@@ -5,6 +5,7 @@ import Sidebar from './components/layout/Sidebar';
 import MobileNavbar from './components/layout/MobileNavbar';
 import PageWrapper from './components/layout/PageWrapper';
 import ErrorBoundary from './components/shared/ErrorBoundary';
+import SyncDebugPanel from './components/shared/SyncDebugPanel';
 import { useGlobalStore } from './store/globalStore';
 import { useGoogleStore } from './store/googleStore';
 import { useSyncStore, initAutoSync } from './store/syncStore';
@@ -138,6 +139,7 @@ function AppContent() {
 
   return (
     <div className="app-layout">
+      <SyncDebugPanel />
       <MobileNavbar />
       <Sidebar />
       <main className={`app-main ${sidebarCollapsed ? 'collapsed' : ''}`}>
