@@ -45,29 +45,64 @@ export default function DietTracker() {
     if (!form.food) return;
     setIsSearching(true);
     try {
-      const res = await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(form.food)}&search_simple=1&action=process&json=1`);
+      // 1. Get FatSecret OAuth Token natively via Proxy
+      const clientId = '2318143d1883431b896616987995a920';
+      const clientSecret = 'e9803ec89cd74628993ec115d49e6f72';
+      const authStr = btoa(`${clientId}:${clientSecret}`);
+
+      const tokenRes = await fetch('/fatsec-auth/connect/token', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${authStr}`,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: 'grant_type=client_credentials&scope=basic'
+      });
+      
+      const tokenData = await tokenRes.json();
+      if (!tokenData.access_token) throw new Error('Failed to authenticate with FatSecret API');
+
+      // 2. Query foods.search.v2
+      const res = await fetch(`/fatsec-api/rest/server.api?method=foods.search.v2&search_expression=${encodeURIComponent(form.food)}&format=json`, {
+        headers: {
+          'Authorization': `Bearer ${tokenData.access_token}`
+        }
+      });
       const data = await res.json();
-      if (data.products && data.products.length > 0) {
-        const p = data.products[0].nutriments;
-        const mult = (Number(form.quantity) || 100) / 100;
+      
+      if (data.foods && data.foods.food && data.foods.food.length > 0) {
+        // Grab top result
+        const topResult = data.foods.food[0];
+        // Format string usually: "Per 100g - Calories: 165kcal | Fat: 3.56g | Carbs: 0.00g | Protein: 31.02g"
+        const desc = topResult.food_description;
         
-        const baseCal = p['energy-kcal_100g'] || p['energy-kcal'] || 0;
-        const baseProt = p['proteins_100g'] || p['proteins'] || 0;
-        const baseCarbs = p['carbohydrates_100g'] || p['carbohydrates'] || 0;
-        const baseFats = p['fat_100g'] || p['fat'] || 0;
+        // Use Regex to safely extract the standard per 100g macro array
+        const calMatch = desc.match(/Calories:\s*(\d+)kcal/i);
+        const fatMatch = desc.match(/Fat:\s*([\d.]+)g/i);
+        const carbsMatch = desc.match(/Carbs:\s*([\d.]+)g/i);
+        const proteinMatch = desc.match(/Protein:\s*([\d.]+)g/i);
+
+        const baseCal = calMatch ? Number(calMatch[1]) : 0;
+        const baseFats = fatMatch ? Number(fatMatch[1]) : 0;
+        const baseCarbs = carbsMatch ? Number(carbsMatch[1]) : 0;
+        const baseProt = proteinMatch ? Number(proteinMatch[1]) : 0;
+
+        const mult = (Number(form.quantity) || 100) / 100;
 
         setForm(prev => ({
           ...prev,
+          food: topResult.food_name, // Map back their standardized exact name
           calories: (baseCal * mult).toFixed(1),
           protein: (baseProt * mult).toFixed(1),
           carbs: (baseCarbs * mult).toFixed(1),
           fats: (baseFats * mult).toFixed(1),
         }));
       } else {
-        alert('Food not found in OpenFoodFacts database. Please enter macros manually.');
+        alert('Food not found in FatSecret database. Please enter macros manually.');
       }
     } catch(err) {
-      alert('Failed to search database. Try again later.');
+      console.error(err);
+      alert('Failed to connect to FatSecret. Try again later or ensure your IP is whitelisted on their console.');
     }
     setIsSearching(false);
   };
@@ -138,7 +173,7 @@ export default function DietTracker() {
                    {isSearching ? '...' : 'Auto-Calculate'}
                  </button>
                </div>
-               <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.25rem' }}>Auto-calculate pulls exact macros scaled to your gram quantity using OpenFoodFacts.</div>
+               <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.25rem' }}>Auto-calculate pulls exact macros scaled to your gram quantity using robust FatSecret intelligence.</div>
             </div>
             <div className="form-group"><label>Calories</label><input type="number" step="0.1" className="input-primary" value={form.calories} onChange={(e) => setForm({ ...form, calories: e.target.value })} required /></div>
             <div className="form-group"><label>Protein (g)</label><input type="number" step="0.1" className="input-primary" value={form.protein} onChange={(e) => setForm({ ...form, protein: e.target.value })} /></div>
