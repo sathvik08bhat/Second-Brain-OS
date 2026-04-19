@@ -353,10 +353,53 @@ export const useGoogleStore = create(
         const { accessToken, isTokenValid } = get();
         if (!isTokenValid()) throw new Error('Not authenticated');
 
-        await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`, {
+        const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`, {
           method: 'DELETE',
           headers: { Authorization: `Bearer ${accessToken}` },
         });
+
+        if (!res.ok) {
+           const err = await res.json().catch(() => ({}));
+           throw new Error(err.error?.message || 'Failed to delete calendar event');
+        }
+      },
+
+      editCalendarEvent: async (eventId, { title, description, startDate, endDate, colorId }) => {
+        const { accessToken, isTokenValid } = get();
+        if (!isTokenValid()) throw new Error('Not authenticated');
+        
+        const event = {
+          summary: title,
+          description: description || '',
+          start: {
+            dateTime: new Date(startDate).toISOString(),
+            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          },
+          end: {
+            dateTime: endDate
+              ? new Date(endDate).toISOString()
+              : new Date(new Date(startDate).getTime() + 60 * 60 * 1000).toISOString(),
+            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          },
+        };
+
+        if (colorId) event.colorId = colorId;
+
+        const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`, {
+          method: 'PUT',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(event),
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error?.message || 'Failed to edit calendar event');
+        }
+
+        return res.json();
       },
 
       // ── Google Tasks ──
@@ -413,6 +456,47 @@ export const useGoogleStore = create(
 
         // Refresh tasks after toggle
         await get().fetchGoogleTasks();
+      },
+
+      editGoogleTask: async (listId, taskId, { title, notes, dueDate }) => {
+        const { accessToken, isTokenValid } = get();
+        if (!isTokenValid()) throw new Error('Not authenticated');
+
+        const task = { title, notes: notes || '' };
+        if (dueDate) {
+          task.due = new Date(dueDate).toISOString();
+        }
+
+        const res = await fetch(`https://www.googleapis.com/tasks/v1/lists/${listId}/tasks/${taskId}`, {
+          method: 'PUT',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(task),
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error?.message || 'Failed to edit task');
+        }
+
+        return res.json();
+      },
+
+      deleteGoogleTask: async (listId, taskId) => {
+        const { accessToken, isTokenValid } = get();
+        if (!isTokenValid()) throw new Error('Not authenticated');
+
+        const res = await fetch(`https://www.googleapis.com/tasks/v1/lists/${listId}/tasks/${taskId}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error?.message || 'Failed to delete task');
+        }
       },
 
       getDefaultTaskListId: async () => {
