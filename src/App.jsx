@@ -119,13 +119,33 @@ import './App.css';
 
 function AppContent() {
   const { sidebarCollapsed, theme, accentColor } = useGlobalStore();
-  const { isAuthenticated, userEmail } = useGoogleStore();
+  const { isAuthenticated, userEmail, accessToken } = useGoogleStore();
   const { pullFromCloud } = useSyncStore();
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     document.documentElement.style.setProperty('--accent-primary', accentColor);
   }, [theme, accentColor]);
+
+  // Recovery: if authenticated but email is missing, try to fetch it
+  useEffect(() => {
+    if (isAuthenticated && !userEmail && accessToken) {
+      console.log('[App] Auth without email detected — attempting recovery...');
+      fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      })
+        .then(r => r.json())
+        .then(info => {
+          if (info.email) {
+            console.log('[App] Email recovered:', info.email);
+            useGoogleStore.setState({ userEmail: info.email });
+          } else {
+            console.error('[App] Email recovery failed — token might be expired. info:', info);
+          }
+        })
+        .catch(err => console.error('[App] Email recovery network error:', err));
+    }
+  }, [isAuthenticated, userEmail, accessToken]);
 
   // Synchronize with Firebase on Login/Load
   useEffect(() => {
