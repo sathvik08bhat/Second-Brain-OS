@@ -119,7 +119,7 @@ import './App.css';
 
 function AppContent() {
   const { sidebarCollapsed, theme, accentColor } = useGlobalStore();
-  const { isAuthenticated, userEmail, accessToken } = useGoogleStore();
+  const { isAuthenticated, userEmail } = useGoogleStore();
   const { pullFromCloud } = useSyncStore();
 
   useEffect(() => {
@@ -127,55 +127,33 @@ function AppContent() {
     document.documentElement.style.setProperty('--accent-primary', accentColor);
   }, [theme, accentColor]);
 
-  const tokenExpiry = useGoogleStore((s) => s.tokenExpiry);
-
-  // Recovery: if authenticated but email is missing, try to fix it
+  // One-time cleanup on mount: if we have stale auth with no email, clear it
   useEffect(() => {
-    if (!isAuthenticated || userEmail) return; // all good or not logged in
-
-    // Token expired? Clear everything and force fresh login
-    if (!accessToken || (tokenExpiry && Date.now() > tokenExpiry)) {
-      console.log('[App] Token expired with no email. Clearing stale auth.');
-      useGoogleStore.setState({
-        isAuthenticated: false,
-        accessToken: null,
-        userEmail: null,
-        tokenExpiry: null,
-      });
-      return;
-    }
-
-    // Token still valid? Try to recover email
-    console.log('[App] Auth without email — recovering...');
-    fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-      headers: { Authorization: `Bearer ${accessToken}` }
-    })
-      .then(r => r.json())
-      .then(info => {
-        if (info.email) {
-          console.log('[App] Email recovered:', info.email);
-          useGoogleStore.setState({ userEmail: info.email });
-        } else {
-          // Token is invalid/revoked even though not "expired" — force re-login
-          console.error('[App] Token invalid. Clearing auth.');
-          useGoogleStore.setState({
-            isAuthenticated: false,
-            accessToken: null,
-            userEmail: null,
-            tokenExpiry: null,
+    const state = useGoogleStore.getState();
+    if (state.isAuthenticated && !state.userEmail) {
+      // Try to recover email if token is still valid
+      if (state.accessToken && state.tokenExpiry && Date.now() < state.tokenExpiry) {
+        fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+          headers: { Authorization: `Bearer ${state.accessToken}` }
+        })
+          .then(r => r.json())
+          .then(info => {
+            if (info.email) {
+              useGoogleStore.setState({ userEmail: info.email });
+            } else {
+              // Token invalid, clear stale auth once
+              useGoogleStore.setState({ isAuthenticated: false, accessToken: null, userEmail: null, tokenExpiry: null });
+            }
+          })
+          .catch(() => {
+            useGoogleStore.setState({ isAuthenticated: false, accessToken: null, userEmail: null, tokenExpiry: null });
           });
-        }
-      })
-      .catch(() => {
-        console.error('[App] Network error recovering email. Clearing auth.');
-        useGoogleStore.setState({
-          isAuthenticated: false,
-          accessToken: null,
-          userEmail: null,
-          tokenExpiry: null,
-        });
-      });
-  }, [isAuthenticated, userEmail, accessToken, tokenExpiry]);
+      } else {
+        // Token expired or missing, clear stale auth once
+        useGoogleStore.setState({ isAuthenticated: false, accessToken: null, userEmail: null, tokenExpiry: null });
+      }
+    }
+  }, []); // Empty deps = runs once on mount only
 
   // Synchronize with Firebase on Login/Load
   useEffect(() => {
