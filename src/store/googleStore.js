@@ -6,7 +6,7 @@ import { persist } from 'zustand/middleware';
 // https://console.cloud.google.com/apis/credentials
 // ─────────────────────────────────────────────────
 const GOOGLE_CLIENT_ID = '535881900428-smoieu90ov1ejv0kupbtj027rij7kvfs.apps.googleusercontent.com';
-const SCOPES = 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/tasks';
+const SCOPES = 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/tasks https://www.googleapis.com/auth/fitness.activity.read';
 
 export const useGoogleStore = create(
   persist(
@@ -17,6 +17,7 @@ export const useGoogleStore = create(
       tokenExpiry: null,
       calendarEvents: [],
       googleTasks: [],
+      fitnessSteps: 0, // Store daily steps
       lastFetched: null,
       syncPreferences: {
         autoSyncTasks: false,
@@ -74,6 +75,7 @@ export const useGoogleStore = create(
           tokenExpiry: null,
           calendarEvents: [],
           googleTasks: [],
+          fitnessSteps: 0
         });
       },
 
@@ -85,6 +87,51 @@ export const useGoogleStore = create(
       setSyncPreference: (key, value) => set((s) => ({
         syncPreferences: { ...s.syncPreferences, [key]: value }
       })),
+
+      // ── Fetch Google Fit Data ──
+      fetchGoogleFitData: async () => {
+        const { accessToken, isTokenValid } = get();
+        if (!isTokenValid()) throw new Error('Not authenticated');
+
+        const now = new Date();
+        now.setHours(0,0,0,0);
+        const startTimeMillis = now.getTime();
+        const endTimeMillis = new Date().getTime();
+
+        const response = await fetch('https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            aggregateBy: [{ "dataTypeName": "com.google.step_count.delta", "dataSourceId": "derived:com.google.step_count.delta:com.google.android.gms:estimated_steps" }],
+            bucketByTime: { "durationMillis": 86400000 },
+            startTimeMillis,
+            endTimeMillis
+          })
+        });
+
+        if (!response.ok) {
+           const errData = await response.json().catch(()=>({}));
+           throw new Error(errData.error?.message || 'Failed to fetch Google Fit data. Ensure Fitness API is enabled in GCP.');
+        }
+
+        const data = await response.json();
+        
+        let totalSteps = 0;
+        if (data.bucket && data.bucket.length > 0) {
+           const firstBucket = data.bucket[0];
+           if (firstBucket.dataset && firstBucket.dataset.length > 0) {
+               const points = firstBucket.dataset[0].point;
+               if (points && points.length > 0) {
+                   totalSteps = points.reduce((acc, point) => acc + (point.value[0]?.intVal || 0), 0);
+               }
+           }
+        }
+
+        set({ fitnessSteps: totalSteps, lastFetched: new Date().toISOString() });
+      },
 
       // ── Fetch Calendar Events ──
       fetchCalendarEvents: async (timeMin, timeMax) => {

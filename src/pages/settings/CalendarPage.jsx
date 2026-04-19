@@ -33,7 +33,7 @@ function formatDueDate(dateStr) {
 
 export default function CalendarPage() {
   const {
-    isAuthenticated, isTokenValid, signIn,
+    isAuthenticated, isTokenValid, signIn, signOut, userEmail,
     calendarEvents, googleTasks, lastFetched,
     fetchCalendarEvents, fetchGoogleTasks, toggleGoogleTaskComplete,
   } = useGoogleStore();
@@ -135,7 +135,11 @@ export default function CalendarPage() {
         <h1><span className="gradient-text">📅 Calendar & Tasks</span></h1>
         <p>Your Google Calendar and Tasks synced live</p>
         <div className="header-actions">
-          <button className="btn-secondary" onClick={loadData} disabled={loading}>
+          {userEmail && <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', background: 'var(--bg-glass)', padding: '0.4rem 0.8rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-primary)' }}>{userEmail}</div>}
+          <button className="btn-secondary" onClick={() => signOut()}>
+            Disconnect
+          </button>
+          <button className="btn-primary" onClick={loadData} disabled={loading}>
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> {loading ? 'Syncing...' : 'Refresh'}
           </button>
         </div>
@@ -191,46 +195,49 @@ export default function CalendarPage() {
             </div>
 
             {/* Calendar cells */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', background: 'var(--border-primary)', gap: '1px' }}>
               {calendarGrid.map((cell, i) => (
                 <div
                   key={i}
                   onClick={() => cell && setSelectedDate(cell.dateStr)}
                   style={{
-                    minHeight: 80, padding: '0.3rem',
-                    borderRight: (i + 1) % 7 !== 0 ? '1px solid var(--border-primary)' : 'none',
-                    borderBottom: '1px solid var(--border-primary)',
+                    minHeight: 110, padding: '0.4rem',
+                    background: cell?.dateStr === selectedDate ? 'var(--accent-purple-light)'
+                      : cell?.isToday ? 'rgba(139, 92, 246, 0.05)' : 'var(--bg-card)',
                     cursor: cell ? 'pointer' : 'default',
-                    background: cell?.dateStr === selectedDate ? 'var(--accent-primary, #8b5cf6)10'
-                      : cell?.isToday ? 'rgba(139, 92, 246, 0.05)' : 'transparent',
-                    transition: 'background 0.15s',
+                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                   }}
-                  onMouseEnter={e => { if (cell) e.currentTarget.style.background = 'var(--bg-glass-hover)'; }}
+                  onMouseEnter={e => { if (cell) { e.currentTarget.style.background = 'var(--bg-glass-hover)'; e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = 'var(--shadow-md)'; e.currentTarget.style.zIndex = 10; } }}
                   onMouseLeave={e => {
-                    if (cell) e.currentTarget.style.background = cell.dateStr === selectedDate
-                      ? 'rgba(139, 92, 246, 0.08)' : cell.isToday ? 'rgba(139, 92, 246, 0.05)' : 'transparent';
+                    if (cell) {
+                      e.currentTarget.style.background = cell.dateStr === selectedDate
+                        ? 'var(--accent-purple-light)' : cell.isToday ? 'rgba(139, 92, 246, 0.05)' : 'var(--bg-card)';
+                      e.currentTarget.style.transform = 'scale(1)';
+                      e.currentTarget.style.boxShadow = 'none';
+                      e.currentTarget.style.zIndex = 1;
+                    }
                   }}
                 >
                   {cell && (
                     <>
                       <div style={{
-                        fontSize: 'var(--font-xs)', fontWeight: cell.isToday ? 800 : 500,
+                        fontSize: 'var(--font-sm)', fontWeight: cell.isToday ? 800 : 500,
                         color: cell.isToday ? 'var(--accent-purple)' : 'var(--text-primary)',
-                        padding: '0.15rem 0.3rem',
+                        padding: '0.2rem', marginBottom: '0.3rem',
                         ...(cell.isToday ? {
                           background: 'var(--accent-purple)', color: '#fff', borderRadius: '50%',
-                          width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center',
                         } : {}),
                       }}>
                         {cell.day}
                       </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 1, marginTop: 2 }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
                         {cell.events.slice(0, 3).map(ev => (
                           <div key={ev.id} style={{
-                            fontSize: '9px', lineHeight: 1.2, padding: '1px 3px',
+                            fontSize: '0.65rem', lineHeight: 1.3, padding: '2px 4px',
                             background: `${EVENT_COLORS[ev.color] || EVENT_COLORS.default}20`,
                             color: EVENT_COLORS[ev.color] || EVENT_COLORS.default,
-                            borderRadius: 3, borderLeft: `2px solid ${EVENT_COLORS[ev.color] || EVENT_COLORS.default}`,
+                            borderRadius: '4px', borderLeft: `3px solid ${EVENT_COLORS[ev.color] || EVENT_COLORS.default}`,
                             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                             fontWeight: 600,
                           }}>
@@ -238,7 +245,7 @@ export default function CalendarPage() {
                           </div>
                         ))}
                         {cell.events.length > 3 && (
-                          <div style={{ fontSize: '8px', color: 'var(--text-muted)', paddingLeft: 3 }}>+{cell.events.length - 3} more</div>
+                          <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', paddingLeft: '4px', fontWeight: 600 }}>+{cell.events.length - 3} more</div>
                         )}
                       </div>
                     </>

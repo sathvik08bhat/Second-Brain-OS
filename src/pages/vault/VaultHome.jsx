@@ -1,44 +1,78 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, Unlock, Key, Building2, FileText, Plus, Copy, CheckCircle2, ShieldAlert, Eye, EyeOff, Trash2 } from 'lucide-react';
+import { Lock, Unlock, Key, Building2, FileText, Plus, Copy, CheckCircle2, ShieldAlert, Eye, EyeOff, Trash2, Folder, UploadCloud, File, Image as ImageIcon, ChevronRight } from 'lucide-react';
 import PageWrapper from '../../components/layout/PageWrapper';
 import { useVaultStore } from '../../store/vaultStore';
+import { encryptVaultData, decryptVaultData } from '../../utils/crypto';
 
 export default function VaultHome() {
-  const { masterPin, setMasterPin, passwords, addPassword, deletePassword, bankDetails, addBankDetail, deleteBankDetail, privateNotes, updatePrivateNotes } = useVaultStore();
+  const { isUnlocked, unlockVault, lockVault, passwords, addPassword, deletePassword, bankDetails, addBankDetail, deleteBankDetail, secureNotes, addSecureNote, updateSecureNote, deleteSecureNote, files, addFile, deleteFile } = useVaultStore();
   
-  const [isUnlocked, setIsUnlocked] = useState(false);
   const [pinInput, setPinInput] = useState('');
+  const [activePin, setActivePin] = useState(null); // Keep PIN in memory while unlocked to encrypt saves
   const [error, setError] = useState('');
   
   const [activeTab, setActiveTab] = useState('passwords');
 
   // Lock automatically on unmount
   useEffect(() => {
-    return () => setIsUnlocked(false);
-  }, []);
+    return () => { lockVault(); setActivePin(null); };
+  }, [lockVault]);
 
-  const handleUnlock = (e) => {
+  // Read raw storage block
+  const rawStorage = localStorage.getItem('sbo-vault-crypto');
+  const isFirstTimeSetup = !rawStorage;
+
+  const handleUnlock = async (e) => {
     e.preventDefault();
-    if (!masterPin) {
-      if (pinInput.length < 4) {
-        setError('PIN must be at least 4 characters.');
-        return;
-      }
-      setMasterPin(pinInput);
-      setIsUnlocked(true);
-      setError('');
-    } else {
-      if (pinInput === masterPin) {
-        setIsUnlocked(true);
+    if (pinInput.length < 4) {
+      setError('PIN must be at least 4 characters.');
+      return;
+    }
+
+    try {
+      if (isFirstTimeSetup) {
+        // Initialize an empty vault and encrypt it with the new PIN
+        const emptyVault = { passwords: [], bankDetails: [], secureNotes: [], files: [] };
+        const encryptedBlob = await encryptVaultData(emptyVault, pinInput);
+        localStorage.setItem('sbo-vault-crypto', encryptedBlob);
+        
+        setActivePin(pinInput);
+        unlockVault(emptyVault);
         setError('');
         setPinInput('');
       } else {
-        setError('Incorrect PIN. Try again.');
+        // Decrypt the existing vault
+        const decryptedData = await decryptVaultData(rawStorage, pinInput);
+        setActivePin(pinInput);
+        unlockVault(decryptedData);
+        setError('');
         setPinInput('');
       }
+    } catch (err) {
+      setError('Incorrect PIN or corrupted data.');
+      setPinInput('');
     }
   };
+
+  // Auto-sync effect: when vault data changes, re-encrypt and save globally
+  useEffect(() => {
+    if (isUnlocked && activePin) {
+      const syncSave = async () => {
+        try {
+          const currentData = { passwords, bankDetails, secureNotes, files };
+          const encryptedBlob = await encryptVaultData(currentData, activePin);
+          localStorage.setItem('sbo-vault-crypto', encryptedBlob);
+        } catch (e) {
+          console.error("Failed to sync vault");
+        }
+      };
+      
+      // Debounce saving slightly for text typing in notes
+      const timeoutId = setTimeout(syncSave, 500);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isUnlocked, activePin, passwords, bankDetails, secureNotes, files]);
 
   if (!isUnlocked) {
     return (
@@ -55,7 +89,7 @@ export default function VaultHome() {
             </div>
             <h2>Private Vault</h2>
             <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
-              {!masterPin ? 'Create a master PIN to secure your vault.' : 'Enter your PIN to access secure storage.'}
+              {isFirstTimeSetup ? 'Create a master PIN to secure your vault.' : 'Enter your PIN to access secure storage.'}
             </p>
 
             <form onSubmit={handleUnlock}>
@@ -64,7 +98,7 @@ export default function VaultHome() {
                 maxLength={10}
                 required
                 autoFocus
-                placeholder={!masterPin ? "Create New PIN" : "Enter PIN"}
+                placeholder={isFirstTimeSetup ? "Create New PIN" : "Enter PIN"}
                 value={pinInput}
                 onChange={(e) => setPinInput(e.target.value)}
                 className="input-primary"
@@ -72,7 +106,7 @@ export default function VaultHome() {
               />
               {error && <div style={{ color: 'var(--accent-red)', fontSize: '0.85rem', marginBottom: '1rem', fontWeight: 600 }}>{error}</div>}
               <button className="btn-primary" type="submit" style={{ width: '100%' }}>
-                {!masterPin ? 'Set PIN & Unlock' : 'Unlock Vault'}
+                {isFirstTimeSetup ? 'Set PIN & Encrypt Vault' : 'Decrypt Vault'}
               </button>
             </form>
 
@@ -92,7 +126,7 @@ export default function VaultHome() {
           <h1><span className="gradient-text">🔒 Private Vault</span></h1>
           <p>Secure storage for passwords, banking details, and private notes</p>
         </div>
-        <button className="btn-secondary" onClick={() => setIsUnlocked(false)}>
+        <button className="btn-secondary" onClick={() => { lockVault(); setActivePin(null); }}>
           <Unlock size={14} /> Lock Vault
         </button>
       </div>
@@ -101,6 +135,7 @@ export default function VaultHome() {
         <button className={activeTab === 'passwords' ? 'active' : ''} onClick={() => setActiveTab('passwords')}><Key size={14} /> Passwords</button>
         <button className={activeTab === 'banks' ? 'active' : ''} onClick={() => setActiveTab('banks')}><Building2 size={14} /> Bank Details</button>
         <button className={activeTab === 'notes' ? 'active' : ''} onClick={() => setActiveTab('notes')}><FileText size={14} /> Secure Notes</button>
+        <button className={activeTab === 'files' ? 'active' : ''} onClick={() => setActiveTab('files')}><Folder size={14} /> Encrypted Files</button>
       </div>
 
       <AnimatePresence mode="wait">
@@ -113,7 +148,8 @@ export default function VaultHome() {
         >
           {activeTab === 'passwords' && <PasswordManager passwords={passwords} addPassword={addPassword} deletePassword={deletePassword} />}
           {activeTab === 'banks' && <BankManager bankDetails={bankDetails} addBankDetail={addBankDetail} deleteBankDetail={deleteBankDetail} />}
-          {activeTab === 'notes' && <SecureNotes notes={privateNotes} updatePrivateNotes={updatePrivateNotes} />}
+          {activeTab === 'notes' && <SecureNotes secureNotes={secureNotes} addSecureNote={addSecureNote} updateSecureNote={updateSecureNote} deleteSecureNote={deleteSecureNote} />}
+          {activeTab === 'files' && <FileManager files={files} addFile={addFile} deleteFile={deleteFile} />}
         </motion.div>
       </AnimatePresence>
     </PageWrapper>
@@ -328,37 +364,162 @@ function BankManager({ bankDetails, addBankDetail, deleteBankDetail }) {
   );
 }
 
-function SecureNotes({ notes, updatePrivateNotes }) {
-  const [val, setVal] = useState(notes);
+function SecureNotes({ secureNotes, addSecureNote, updateSecureNote, deleteSecureNote }) {
+  const [activeNoteId, setActiveNoteId] = useState(null);
   const [saving, setSaving] = useState(false);
 
-  // Auto-save debounce effect
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (val !== notes) {
-        updatePrivateNotes(val);
-        setSaving(true);
-        setTimeout(() => setSaving(false), 500);
-      }
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, [val, notes, updatePrivateNotes]);
+  const activeNote = secureNotes.find(n => n.id === activeNoteId);
+
+  const handleContentChange = (e) => {
+    if (!activeNoteId) return;
+    updateSecureNote(activeNoteId, e.target.value, undefined);
+    setSaving(true);
+    setTimeout(() => setSaving(false), 500);
+  };
+
+  const handleTitleChange = (e) => {
+    if (!activeNoteId) return;
+    updateSecureNote(activeNoteId, undefined, e.target.value);
+  };
+
+  const createNote = () => {
+    addSecureNote({ title: 'New Note', content: '' });
+  };
 
   return (
-    <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', height: '60vh' }}>
-      <div style={{ padding: '1rem 1.5rem', borderBottom: '2px solid var(--border-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-glass)' }}>
-        <h3 style={{ margin: 0, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 8 }}><FileText size={16} /> Private Journal</h3>
-        <div style={{ fontSize: '0.8rem', color: saving ? 'var(--accent-green)' : 'var(--text-tertiary)', fontWeight: 600 }}>
-          {saving ? 'Saved securely' : 'Auto-saves locally'}
+    <div style={{ display: 'grid', gridTemplateColumns: '250px 1fr', gap: '1rem', minHeight: '60vh' }}>
+      {/* Sidebar List */}
+      <div className="glass-card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <button className="btn-primary" onClick={createNote} style={{ width: '100%', marginBottom: '1rem' }}><Plus size={16} /> New Note</button>
+        <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          {secureNotes.map(note => (
+            <div 
+              key={note.id} 
+              onClick={() => setActiveNoteId(note.id)}
+              style={{
+                padding: '0.75rem', borderRadius: 'var(--radius-md)', cursor: 'pointer',
+                background: activeNoteId === note.id ? 'var(--accent-primary)20' : 'var(--bg-card)',
+                border: `1px solid ${activeNoteId === note.id ? 'var(--accent-purple)' : 'transparent'}`,
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+              }}
+            >
+               <span style={{ fontWeight: 600, fontSize: '0.9rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{note.title}</span>
+               <button className="btn-icon" onClick={(e) => { e.stopPropagation(); deleteSecureNote(note.id); if(activeNoteId===note.id) setActiveNoteId(null); }} style={{ padding: 2, color: 'var(--text-muted)' }}><Trash2 size={12} /></button>
+            </div>
+          ))}
+          {secureNotes.length === 0 && <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', textAlign: 'center', padding: '1rem' }}>No notes yet.</div>}
         </div>
       </div>
-      <textarea
-        value={val}
-        onChange={(e) => setVal(e.target.value)}
-        placeholder="Write anything you want to keep strictly private from prying eyes... Crypto keys, diary entries, deep secrets."
-        className="input-primary"
-        style={{ flex: 1, border: 'none', borderRadius: 0, padding: '1.5rem', resize: 'none', fontSize: '1rem', lineHeight: 1.6, background: 'transparent' }}
-      />
+
+      {/* Editor Panel */}
+      <div className="glass-card" style={{ display: 'flex', flexDirection: 'column' }}>
+        {activeNote ? (
+           <>
+             <div style={{ padding: '1rem 1.5rem', borderBottom: '2px solid var(--border-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-glass)' }}>
+               <input 
+                 value={activeNote.title} 
+                 onChange={handleTitleChange} 
+                 style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', fontSize: '1.2rem', fontWeight: 700, outline: 'none', width: '60%' }} 
+               />
+               <div style={{ fontSize: '0.8rem', color: saving ? 'var(--accent-green)' : 'var(--text-tertiary)', fontWeight: 600 }}>
+                 {saving ? 'Saved securely' : 'Auto-saves locally'}
+               </div>
+             </div>
+             <textarea
+               value={activeNote.content}
+               onChange={handleContentChange}
+               placeholder="Write your private thoughts here..."
+               className="input-primary"
+               style={{ flex: 1, border: 'none', borderRadius: 0, padding: '1.5rem', resize: 'none', fontSize: '1rem', lineHeight: 1.6, background: 'transparent' }}
+             />
+           </>
+        ) : (
+           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)', flexDirection: 'column', gap: 10 }}>
+              <FileText size={48} style={{ opacity: 0.5 }} />
+              <p>Select a note or create a new one.</p>
+           </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FileManager({ files, addFile, deleteFile }) {
+  const fileInputRef = useRef(null);
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    if (file.size > 2 * 1024 * 1024) { // Warning above 2MB
+      if(!window.confirm(`This file is ${(file.size / 1024 / 1024).toFixed(1)}MB. Encrypting large files via LocalStorage may crash your vault data. Are you sure?`)) {
+        e.target.value = '';
+        return;
+      }
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      addFile({
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        dataUrl: event.target.result
+      });
+    };
+    reader.readAsDataURL(file);
+    e.target.value = ''; // reset
+  };
+
+  const downloadFile = (file) => {
+    const link = document.createElement('a');
+    link.href = file.dataUrl;
+    link.download = `decrypted_${file.name}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <div>
+          <h3 style={{ margin: 0, fontSize: '1.2rem' }}>Encrypted File System</h3>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', margin: '0.2rem 0 0 0' }}>Max recommended size: 2MB per file to avoid LocalStorage limits.</p>
+        </div>
+        <input type="file" ref={fileInputRef} onChange={handleFileUpload} style={{ display: 'none' }} />
+        <button className="btn-primary" onClick={() => fileInputRef.current?.click()}><UploadCloud size={16} /> Upload Secret File</button>
+      </div>
+
+      {files.length === 0 ? (
+        <div className="empty-state glass-card">
+          <Folder size={48} />
+          <h3>Empty Secure Folder</h3>
+          <p>Upload screenshots, ID cards, or sensitive documents to encrypt them locally.</p>
+        </div>
+      ) : (
+        <div className="grid-auto">
+          {files.map(f => (
+            <div key={f.id} className="glass-card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+               <div style={{ height: '140px', background: 'var(--bg-glass)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                 {f.type.startsWith('image/') ? (
+                   <img src={f.dataUrl} alt={f.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                 ) : (
+                   <File size={40} style={{ color: 'var(--text-tertiary)' }} />
+                 )}
+               </div>
+               <div style={{ padding: '1rem' }}>
+                 <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.name}</h4>
+                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{(f.size / 1024).toFixed(1)} KB • {f.type || 'Unknown'}</div>
+                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+                   <button className="btn-secondary" style={{ flex: 1, padding: '0.4rem' }} onClick={() => downloadFile(f)}>Download</button>
+                   <button className="btn-icon-danger" onClick={() => deleteFile(f.id)}><Trash2 size={16} /></button>
+                 </div>
+               </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

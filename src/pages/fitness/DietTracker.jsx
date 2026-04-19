@@ -11,18 +11,18 @@ export default function DietTracker() {
   const { meals, addMeal, updateMeal, deleteMeal } = useFitnessStore();
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [form, setForm] = useState({ date: new Date().toISOString().split('T')[0], mealType: 'lunch', food: '', calories: '', protein: '', carbs: '', fats: '' });
+  const [form, setForm] = useState({ date: new Date().toISOString().split('T')[0], mealType: 'lunch', food: '', quantity: 100, calories: '', protein: '', carbs: '', fats: '' });
 
   const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const data = { ...form, calories: Number(form.calories), protein: Number(form.protein || 0), carbs: Number(form.carbs || 0), fats: Number(form.fats || 0) };
+    const data = { ...form, quantity: Number(form.quantity), calories: Number(form.calories), protein: Number(form.protein || 0), carbs: Number(form.carbs || 0), fats: Number(form.fats || 0) };
     if (editId) updateMeal(editId, data); else addMeal(data);
     resetForm();
   };
-  const resetForm = () => { setForm({ date: filterDate, mealType: 'lunch', food: '', calories: '', protein: '', carbs: '', fats: '' }); setEditId(null); setShowModal(false); };
-  const startEdit = (d) => { setForm({ date: d.date, mealType: d.mealType, food: d.food, calories: d.calories, protein: d.protein || '', carbs: d.carbs || '', fats: d.fats || '' }); setEditId(d.id); setShowModal(true); };
+  const resetForm = () => { setForm({ date: filterDate, mealType: 'lunch', food: '', quantity: 100, calories: '', protein: '', carbs: '', fats: '' }); setEditId(null); setShowModal(false); };
+  const startEdit = (d) => { setForm({ date: d.date, mealType: d.mealType, food: d.food, quantity: d.quantity || 100, calories: d.calories, protein: d.protein || '', carbs: d.carbs || '', fats: d.fats || '' }); setEditId(d.id); setShowModal(true); };
 
   const dayLogs = meals.filter(d => d.date === filterDate);
   const totalCals = dayLogs.reduce((s, d) => s + d.calories, 0);
@@ -49,12 +49,19 @@ export default function DietTracker() {
       const data = await res.json();
       if (data.products && data.products.length > 0) {
         const p = data.products[0].nutriments;
+        const mult = (Number(form.quantity) || 100) / 100;
+        
+        const baseCal = p['energy-kcal_100g'] || p['energy-kcal'] || 0;
+        const baseProt = p['proteins_100g'] || p['proteins'] || 0;
+        const baseCarbs = p['carbohydrates_100g'] || p['carbohydrates'] || 0;
+        const baseFats = p['fat_100g'] || p['fat'] || 0;
+
         setForm(prev => ({
           ...prev,
-          calories: p['energy-kcal_100g'] || p['energy-kcal'] || prev.calories,
-          protein: p['proteins_100g'] || p['proteins'] || prev.protein,
-          carbs: p['carbohydrates_100g'] || p['carbohydrates'] || prev.carbs,
-          fats: p['fat_100g'] || p['fat'] || prev.fats,
+          calories: (baseCal * mult).toFixed(1),
+          protein: (baseProt * mult).toFixed(1),
+          carbs: (baseCarbs * mult).toFixed(1),
+          fats: (baseFats * mult).toFixed(1),
         }));
       } else {
         alert('Food not found in OpenFoodFacts database. Please enter macros manually.');
@@ -86,17 +93,18 @@ export default function DietTracker() {
       <div className="grid-2">
         <div className="glass-card" style={{ padding: '0' }}>
           <table className="data-table">
-            <thead><tr><th>Meal</th><th>Food</th><th>Cals</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Meal</th><th>Food</th><th>Qty</th><th>Cals</th><th>Actions</th></tr></thead>
             <tbody>
               {dayLogs.map((log, i) => (
                 <motion.tr key={log.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}>
                   <td><span className={`badge ${mealColors[log.mealType]}`}>{log.mealType}</span></td>
                   <td style={{ fontWeight: 600 }}>{log.food}</td>
+                  <td style={{ color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>{log.quantity || '-'}g</td>
                   <td style={{ color: 'var(--accent-cyan)', fontWeight: 700 }}>{Math.round(log.calories)}</td>
                   <td><div style={{ display: 'flex', gap: '0.25rem' }}><button className="btn-icon" onClick={() => startEdit(log)}><Edit3 size={15} /></button><button className="btn-icon" onClick={() => deleteMeal(log.id)} style={{ color: 'var(--accent-red)' }}><Trash2 size={15} /></button></div></td>
                 </motion.tr>
               ))}
-              {dayLogs.length === 0 && <tr><td colSpan="4" style={{ textAlign: 'center', padding: '2rem' }}>No meals logged for this day.</td></tr>}
+              {dayLogs.length === 0 && <tr><td colSpan="5" style={{ textAlign: 'center', padding: '2rem' }}>No meals logged for this day.</td></tr>}
             </tbody>
           </table>
         </div>
@@ -122,14 +130,15 @@ export default function DietTracker() {
             <div className="form-group"><label>Date *</label><input type="date" className="input-primary" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} required /></div>
             <div className="form-group"><label>Meal Type</label><select className="input-primary" value={form.mealType} onChange={(e) => setForm({ ...form, mealType: e.target.value })}><option value="breakfast">Breakfast</option><option value="lunch">Lunch</option><option value="dinner">Dinner</option><option value="snack">Snack</option></select></div>
             <div className="form-group full-width">
-               <label>Food Item *</label>
+               <label>Food Item & Quantity *</label>
                <div style={{ display: 'flex', gap: '0.5rem' }}>
                  <input className="input-primary" style={{ flex: 1 }} value={form.food} onChange={(e) => setForm({ ...form, food: e.target.value })} required placeholder="e.g. Apple or Chicken Breast" />
+                 <input type="number" className="input-primary" style={{ width: 100 }} value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} required placeholder="Qty (g)" title="Quantity in grams" />
                  <button type="button" className="btn-secondary" onClick={searchFoodMacros} disabled={isSearching || !form.food}>
                    {isSearching ? '...' : 'Auto-Calculate'}
                  </button>
                </div>
-               <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.25rem' }}>Auto-calculate pulls approx values for 100g using the free OpenFoodFacts database.</div>
+               <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.25rem' }}>Auto-calculate pulls exact macros scaled to your gram quantity using OpenFoodFacts.</div>
             </div>
             <div className="form-group"><label>Calories</label><input type="number" step="0.1" className="input-primary" value={form.calories} onChange={(e) => setForm({ ...form, calories: e.target.value })} required /></div>
             <div className="form-group"><label>Protein (g)</label><input type="number" step="0.1" className="input-primary" value={form.protein} onChange={(e) => setForm({ ...form, protein: e.target.value })} /></div>

@@ -1,12 +1,16 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Dumbbell, Activity, Utensils, HeartPulse, Scale, ArrowRight, Target } from 'lucide-react';
+import { Dumbbell, Activity, Utensils, HeartPulse, Scale, ArrowRight, Target, RefreshCw } from 'lucide-react';
 import PageWrapper from '../../components/layout/PageWrapper';
 import StatsCard from '../../components/shared/StatsCard';
 import { useFitnessStore } from '../../store/fitnessStore';
+import { useGoogleStore } from '../../store/googleStore';
 
 export default function FitnessHome() {
   const { currentWeight, targetWeight, workouts, cardioLogs } = useFitnessStore();
+  const { isTokenValid, fitnessSteps, fetchGoogleFitData, lastFetched } = useGoogleStore();
+  
   const weightLost = 89 - currentWeight;
   const progress = Math.min(100, Math.max(0, Math.round((weightLost / (89 - targetWeight)) * 100)));
 
@@ -17,17 +21,32 @@ export default function FitnessHome() {
     { path: '/fitness/cardio', icon: HeartPulse, title: 'Cardio Log', desc: 'Running and cycling', color: '#ef4444' },
   ];
 
+  // Auto-sync Fit data if connected
+  useEffect(() => {
+    if (isTokenValid()) {
+      fetchGoogleFitData().catch(e => console.error("Google Fit Error:", e));
+    }
+  }, [isTokenValid, fetchGoogleFitData]);
+
   return (
     <PageWrapper>
-      <div className="page-header">
-        <h1><span className="gradient-text">🏋️ Fitness Journey</span></h1>
-        <p>Goal: 89kg → 75kg. Track weight, diet, and workouts.</p>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <h1><span className="gradient-text">🏋️ Fitness Journey</span></h1>
+          <p>Goal: 89kg → 75kg. Track weight, diet, and workouts.</p>
+        </div>
+        {isTokenValid() && (
+           <button className="btn-secondary" onClick={fetchGoogleFitData} title="Force sync Fit data">
+             <RefreshCw size={14} /> Sync Steps
+           </button>
+        )}
       </div>
 
-      <div className="grid-3" style={{ marginBottom: 'var(--space-md)' }}>
-        <StatsCard icon={Scale} label="Current Weight" value={`${currentWeight} kg`} subtitle={`Target: ${targetWeight} kg`} color="#8b5cf6" />
-        <StatsCard icon={Dumbbell} label="Workouts Logged" value={workouts.length} subtitle="Gym sessions" color="#f59e0b" delay={0.1} />
-        <StatsCard icon={HeartPulse} label="Cardio Sessions" value={cardioLogs.length} subtitle="Runs & cycles" color="#ef4444" delay={0.2} />
+      <div className="grid-4" style={{ marginBottom: 'var(--space-md)' }}>
+        <StatsCard icon={Activity} label="Daily Steps" value={isTokenValid() ? fitnessSteps.toLocaleString() : 'Not Connected'} subtitle={isTokenValid() ? "Synced via Google Fit" : "Connect Google Account"} color="#3b82f6" />
+        <StatsCard icon={Scale} label="Current Weight" value={`${currentWeight} kg`} subtitle={`Target: ${targetWeight} kg`} color="#8b5cf6" delay={0.1} />
+        <StatsCard icon={Dumbbell} label="Workouts Logged" value={workouts.length} subtitle="Gym sessions" color="#f59e0b" delay={0.2} />
+        <StatsCard icon={HeartPulse} label="Cardio Sessions" value={cardioLogs.length} subtitle="Runs & cycles" color="#ef4444" delay={0.3} />
       </div>
 
       <motion.div className="glass-card" style={{ padding: '1.5rem', marginBottom: 'var(--space-xl)' }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
