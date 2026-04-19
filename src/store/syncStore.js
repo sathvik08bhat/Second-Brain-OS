@@ -112,7 +112,7 @@ export const initAutoSync = (googleStoreHook) => {
     clearTimeout(debounceTimeout);
     debounceTimeout = setTimeout(() => {
       useSyncStore.getState().pushToCloud(email);
-    }, 4000); // Debounce saves by 4 seconds to reduce Firebase writes
+    }, 300); // 300ms debounce for near-instant syncing
   };
 
   // Subscribing to all stores to capture local changes
