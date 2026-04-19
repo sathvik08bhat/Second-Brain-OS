@@ -67,6 +67,7 @@ import ProductRoadmap from './pages/startup/ProductRoadmap';
 import CustomWikiHub from './pages/startup/CustomWikiHub';
 import ArchitectureGrid from './pages/startup/ArchitectureGrid';
 import MeetingTimeline from './pages/startup/MeetingTimeline';
+import PipelineBoard from './pages/startup/PipelineBoard';
 
 // Club
 import ClubHome from './pages/club/ClubHome';
@@ -238,6 +239,8 @@ function AppContent() {
             <Route path="/startup/sops" element={<CustomWikiHub type="sop" />} />
             <Route path="/startup/architecture" element={<ArchitectureGrid />} />
             <Route path="/startup/meetings" element={<MeetingTimeline />} />
+            <Route path="/startup/deals" element={<PipelineBoard type="deals" />} />
+            <Route path="/startup/investors" element={<PipelineBoard type="investors" />} />
 
             {/* Club */}
             <Route path="/club" element={<ClubHome />} />

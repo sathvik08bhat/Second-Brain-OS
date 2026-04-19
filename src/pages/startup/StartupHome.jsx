@@ -48,7 +48,7 @@ const DEPARTMENTS = [
     subtitle: 'Revenue Pipeline',
     color: '#f59e0b', // Amber
     dbs: [
-      { id: 'dealPipeline', title: 'Deal Pipeline', icon: Handshake },
+      { id: 'dealPipeline', title: 'Deal Pipeline', icon: Handshake, isCustom: true, path: '/startup/deals' },
       { id: 'partnerDirectory', title: 'Partner Directory', icon: FileText },
     ]
   },
@@ -69,7 +69,7 @@ const DEPARTMENTS = [
     dbs: [
       { id: 'capTable', title: 'Cap Table & Equity', icon: PieChart },
       { id: 'finances', title: 'Runway & Burn Rate', icon: Activity, isCustom: true, path: '/startup/finance' },
-      { id: 'investorPipeline', title: 'Investor Pipeline', icon: DollarSign },
+      { id: 'investorPipeline', title: 'Investor Pipeline', icon: DollarSign, isCustom: true, path: '/startup/investors' },
     ]
   }
 ];
