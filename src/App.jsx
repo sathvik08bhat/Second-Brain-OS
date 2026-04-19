@@ -61,6 +61,9 @@ import StartupDatabase from './pages/startup/StartupDatabase';
 import IdeaLab from './pages/startup/IdeaLab';
 import SprintBoard from './pages/startup/SprintBoard';
 import Finance from './pages/startup/Finance';
+import OkrsDashboard from './pages/startup/OkrsDashboard';
+import B2cMatrix from './pages/startup/B2cMatrix';
+import ProductRoadmap from './pages/startup/ProductRoadmap';
 
 // Club
 import ClubHome from './pages/club/ClubHome';
@@ -225,6 +228,9 @@ function AppContent() {
             <Route path="/startup/ideas" element={<IdeaLab />} />
             <Route path="/startup/tasks" element={<SprintBoard />} />
             <Route path="/startup/finance" element={<Finance />} />
+            <Route path="/startup/okrs" element={<OkrsDashboard />} />
+            <Route path="/startup/matrix" element={<B2cMatrix />} />
+            <Route path="/startup/roadmap" element={<ProductRoadmap />} />
 
             {/* Club */}
             <Route path="/club" element={<ClubHome />} />

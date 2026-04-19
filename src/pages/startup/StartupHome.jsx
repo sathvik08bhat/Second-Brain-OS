@@ -17,8 +17,8 @@ const DEPARTMENTS = [
     subtitle: 'Command Center & Strategy',
     color: '#8b5cf6', // Purple
     dbs: [
-      { id: 'okrs', title: 'OKRs & Strategy', icon: Target },
-      { id: 'b2cMatrix', title: 'The B2C Matrix', icon: Building2 }, // Validate ideas
+      { id: 'okrs', title: 'OKRs & Strategy', icon: Target, isCustom: true, path: '/startup/okrs' },
+      { id: 'b2cMatrix', title: 'The B2C Matrix', icon: Building2, isCustom: true, path: '/startup/matrix' },
       { id: 'companyWiki', title: 'Company Wiki', icon: BookOpen },
     ]
   },
@@ -27,7 +27,7 @@ const DEPARTMENTS = [
     subtitle: 'Build & Ship',
     color: '#3b82f6', // Blue
     dbs: [
-      { id: 'productRoadmap', title: 'Product Roadmap', icon: Map },
+      { id: 'productRoadmap', title: 'Product Roadmap', icon: Map, isCustom: true, path: '/startup/roadmap' },
       { id: 'tasks', title: 'Sprint Kanban', icon: Kanban, isCustom: true, path: '/startup/tasks' },
       { id: 'bugTracker', title: 'Bug Tracker', icon: Bug },
       { id: 'architectureDB', title: 'Architecture DB', icon: Server },
@@ -74,12 +74,66 @@ const DEPARTMENTS = [
   }
 ];
 
+import { useStartupStore } from '../../store/startupStore';
+
 export default function StartupHome() {
+  const { dealPipeline, bugTracker, finances, tasks } = useStartupStore();
+
+  // Calculations for Executive Brief
+  const activeDeals = dealPipeline.filter(d => ['Lead', 'Pitched', 'Negotiating'].includes(d.stage));
+  const pipelineValue = activeDeals.reduce((sum, d) => sum + (Number(d.value) || 0), 0);
+  
+  const criticalBugs = bugTracker.filter(b => b.severity?.toLowerCase() === 'critical' && b.status?.toLowerCase() !== 'resolved');
+  
+  const totalIncome = finances.filter(f => f.type === 'income').reduce((s, f) => s + (f.amount || 0), 0);
+  const totalExpense = finances.filter(f => f.type === 'expense').reduce((s, f) => s + (f.amount || 0), 0);
+  const netCashflow = totalIncome - totalExpense;
+
+  const incompleteTasks = tasks.filter(t => t.status !== 'done').length;
+
   return (
     <PageWrapper>
       <div className="page-header" style={{ marginBottom: '2rem' }}>
         <h1><span className="gradient-text">🚀 Startup OS</span></h1>
         <p>Your comprehensive 6-department company brain.</p>
+      </div>
+
+      {/* ── Executive Daily Briefing ── */}
+      <div className="glass-card" style={{ padding: '1.5rem', marginBottom: '2rem', borderLeft: '4px solid #8b5cf6' }}>
+        <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Activity size={20} color="#8b5cf6" /> Executive Briefing
+        </h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '1px' }}>Pipeline Velocity</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 700, color: '#f59e0b' }}>
+              ${pipelineValue.toLocaleString()} <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 400 }}>({activeDeals.length} active)</span>
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '1px' }}>System Health</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 700, color: criticalBugs.length > 0 ? '#ef4444' : '#10b981' }}>
+              {criticalBugs.length} Critical Bugs
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '1px' }}>Net Cashflow</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 700, color: netCashflow >= 0 ? '#10b981' : '#ef4444' }}>
+              ${netCashflow.toLocaleString()}
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '1px' }}>Sprint Progress</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 700, color: '#3b82f6' }}>
+              {incompleteTasks} Tasks Open
+            </span>
+          </div>
+
+        </div>
       </div>
 
       <div style={{
