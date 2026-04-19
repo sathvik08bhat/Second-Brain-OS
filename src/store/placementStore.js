@@ -5,25 +5,11 @@ import { generateId } from '../utils/helpers';
 export const usePlacementStore = create(
   persist(
     (set) => ({
-      dsaProblems: [],
-      dsaTopics: [],
       skills: [],
       companies: [],
       interviews: [],
       projects: [],
 
-      // DSA Topics
-      addDsaTopic: (t) => set((s) => ({ dsaTopics: [...s.dsaTopics, { id: generateId(), createdAt: new Date().toISOString(), solved: 0, total: 0, ...t }] })),
-      updateDsaTopic: (id, u) => set((s) => ({ dsaTopics: s.dsaTopics.map((t) => t.id === id ? { ...t, ...u } : t) })),
-      deleteDsaTopic: (id) => set((s) => ({
-        dsaTopics: s.dsaTopics.filter((t) => t.id !== id),
-        dsaProblems: s.dsaProblems.filter((p) => p.topicId !== id),
-      })),
-
-      // DSA Problems
-      addDsaProblem: (p) => set((s) => ({ dsaProblems: [...s.dsaProblems, { id: generateId(), createdAt: new Date().toISOString(), status: 'unsolved', ...p }] })),
-      updateDsaProblem: (id, u) => set((s) => ({ dsaProblems: s.dsaProblems.map((p) => p.id === id ? { ...p, ...u } : p) })),
-      deleteDsaProblem: (id) => set((s) => ({ dsaProblems: s.dsaProblems.filter((p) => p.id !== id) })),
 
       // Skills
       addSkill: (sk) => set((s) => ({ skills: [...s.skills, { id: generateId(), createdAt: new Date().toISOString(), proficiency: 0, ...sk }] })),

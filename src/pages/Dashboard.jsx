@@ -17,6 +17,7 @@ import { useCatStore } from '../store/catStore';
 import { useTaskStore, TASK_CATEGORIES } from '../store/taskStore';
 import { useFinanceStore } from '../store/financeStore';
 import { useGoogleStore } from '../store/googleStore';
+import { useDsaStore } from '../store/dsaStore';
 import { getGreeting } from '../utils/helpers';
 import './Dashboard.css';
 
@@ -103,9 +104,11 @@ function DashboardTaskTracker() {
 
 const sections = [
   { path: '/academics', icon: GraduationCap, label: 'Academics', desc: 'CGPA, Exams, Attendance', color: '#8b5cf6', gradient: 'linear-gradient(135deg, #8b5cf6, #a78bfa)' },
-  { path: '/gsoc', icon: Code2, label: 'GSoC 2027', desc: 'Open Source & Skills', color: '#06b6d4', gradient: 'linear-gradient(135deg, #06b6d4, #22d3ee)' },
-  { path: '/cat', icon: BarChart3, label: 'CAT 2027', desc: 'IIM Preparation', color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #fbbf24)' },
+  { path: '/dsa', icon: Code2, label: 'DSA Hub', desc: 'LeetCode & Roadmap', color: '#06b6d4', gradient: 'linear-gradient(135deg, #06b6d4, #22d3ee)' },
+  { path: '/aiml', icon: Cpu, label: 'AI/ML', desc: 'Learning & Research', color: '#ef4444', gradient: 'linear-gradient(135deg, #ef4444, #f97316)' },
   { path: '/placements', icon: Briefcase, label: 'Placements', desc: 'DSA & Skills', color: '#3b82f6', gradient: 'linear-gradient(135deg, #3b82f6, #60a5fa)' },
+  { path: '/cat', icon: BarChart3, label: 'CAT 2027', desc: 'IIM Preparation', color: '#f59e0b', gradient: 'linear-gradient(135deg, #f59e0b, #fbbf24)' },
+  { path: '/gsoc', icon: Code2, label: 'GSoC 2027', desc: 'Open Source & Skills', color: '#06b6d4', gradient: 'linear-gradient(135deg, #06b6d4, #22d3ee)' },
   { path: '/startup', icon: Rocket, label: 'Startup', desc: 'Ideas & Execution', color: '#f97316', gradient: 'linear-gradient(135deg, #f97316, #fb923c)' },
   { path: '/club', icon: Users, label: 'Tech Society', desc: 'Club Management', color: '#ec4899', gradient: 'linear-gradient(135deg, #ec4899, #f472b6)' },
   { path: '/finance', icon: Wallet, label: 'Finance', desc: 'Track Every Rupee', color: '#10b981', gradient: 'linear-gradient(135deg, #10b981, #06b6d4)' },
@@ -134,15 +137,14 @@ const item = {
 export default function Dashboard() {
   const subjects = useAcademicStore((s) => s.subjects);
   const exams = useAcademicStore((s) => s.exams);
-  const dsaProblems = usePlacementStore((s) => s.dsaProblems);
   const { currentWeight, targetWeight } = useFitnessStore();
   const habits = usePersonalStore((s) => s.habits);
   const gsocSkills = useGsocStore((s) => s.skills);
   const mockTests = useCatStore((s) => s.mockTests);
   const tasks = useTaskStore((s) => s.tasks);
   const totalBalance = useFinanceStore((s) => s.getTotalBalance());
+  const { leetcodeStats } = useDsaStore();
 
-  const solvedDsa = dsaProblems.filter((p) => p.status === 'solved').length;
   const pendingTasks = tasks.filter(t => !t.completed).length;
 
   return (
@@ -209,8 +211,8 @@ export default function Dashboard() {
         <StatsCard
           icon={TrendingUp}
           label="DSA Solved"
-          value={solvedDsa}
-          subtitle={`of ${dsaProblems.length} problems`}
+          value={leetcodeStats ? leetcodeStats.totalSolved : 0}
+          subtitle={leetcodeStats ? 'Synced via LeetCode' : 'Unsynced'}
           color="#3b82f6"
           delay={0.1}
         />

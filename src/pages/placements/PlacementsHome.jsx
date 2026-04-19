@@ -6,14 +6,11 @@ import StatsCard from '../../components/shared/StatsCard';
 import { usePlacementStore } from '../../store/placementStore';
 
 export default function PlacementsHome() {
-  const { dsaProblems, skills, companies } = usePlacementStore();
-
-  const solvedDsa = dsaProblems.filter((p) => p.status === 'solved').length;
+  const { skills, companies } = usePlacementStore();
   const avgSkill = skills.length ? Math.round(skills.reduce((s, sk) => s + (sk.proficiency || 0), 0) / skills.length) : 0;
 
   const subPages = [
-    { path: '/placements/dsa', icon: Code2, title: 'DSA Tracker', desc: 'Topics, problems, and patterns', color: '#06b6d4' },
-    { path: '/placements/skills', icon: Target, title: 'AI/ML Skills', desc: 'Tech stack proficiency', color: '#8b5cf6' },
+    { path: '/placements/skills', icon: Target, title: 'Skills', desc: 'Tech stack proficiency', color: '#8b5cf6' },
     { path: '/placements/companies', icon: Building, title: 'Companies Database', desc: 'Target companies and applications', color: '#f59e0b' },
   ];
 
@@ -24,9 +21,8 @@ export default function PlacementsHome() {
         <p>Preparation hub for Aug-Dec 2027 placements</p>
       </div>
 
-      <div className="grid-3" style={{ marginBottom: 'var(--space-xl)' }}>
-        <StatsCard icon={Code2} label="DSA Solved" value={solvedDsa} subtitle={`of ${dsaProblems.length} tracked`} color="#06b6d4" />
-        <StatsCard icon={Target} label="AI/ML Skills" value={skills.length} subtitle={`${avgSkill}% avg proficiency`} color="#8b5cf6" delay={0.1} />
+      <div className="grid-2" style={{ marginBottom: 'var(--space-xl)' }}>
+        <StatsCard icon={Target} label="Skills" value={skills.length} subtitle={`${avgSkill}% avg proficiency`} color="#8b5cf6" delay={0.1} />
         <StatsCard icon={Building} label="Target Companies" value={companies.length} subtitle="Watchlist" color="#f59e0b" delay={0.2} />
       </div>
 

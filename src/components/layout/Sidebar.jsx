@@ -37,6 +37,14 @@ const navSections = [
         ]
       },
       {
+        path: '/dsa', icon: Code2, label: 'DSA Hub',
+        children: [
+          { path: '/dsa', label: 'Overview' },
+          { path: '/dsa/roadmap', label: 'Roadmap' },
+          { path: '/dsa/videos', label: 'Videos' },
+        ]
+      },
+      {
         path: '/aiml', icon: Cpu, label: 'AI/ML',
         children: [
           { path: '/aiml', label: 'Overview' },
@@ -67,7 +75,6 @@ const navSections = [
       { path: '/placements', icon: Briefcase, label: 'Placements',
         children: [
           { path: '/placements', label: 'Overview' },
-          { path: '/placements/dsa', label: 'DSA Tracker' },
           { path: '/placements/skills', label: 'Skills' },
           { path: '/placements/companies', label: 'Companies' },
         ]

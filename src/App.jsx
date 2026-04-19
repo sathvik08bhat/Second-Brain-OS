@@ -42,9 +42,13 @@ import CatResources from './pages/cat/CatResources';
 
 // Placements
 import PlacementsHome from './pages/placements/PlacementsHome';
-import DsaTracker from './pages/placements/DsaTracker';
 import PlacementSkills from './pages/placements/PlacementSkills';
 import Companies from './pages/placements/Companies';
+
+// DSA Hub
+import DsaHome from './pages/dsa/DsaHome';
+import DsaRoadmap from './pages/dsa/DsaRoadmap';
+import DsaVideos from './pages/dsa/DsaVideos';
 
 // Startup
 import StartupHome from './pages/startup/StartupHome';
@@ -144,6 +148,11 @@ function AppContent() {
             <Route path="/aiml/projects" element={<AimlProjects />} />
             <Route path="/aiml/papers" element={<AimlPapers />} />
 
+            {/* DSA Hub */}
+            <Route path="/dsa" element={<DsaHome />} />
+            <Route path="/dsa/roadmap" element={<DsaRoadmap />} />
+            <Route path="/dsa/videos" element={<DsaVideos />} />
+
             {/* GSoC */}
             <Route path="/gsoc" element={<GsocHome />} />
             <Route path="/gsoc/skills" element={<GsocSkills />} />
@@ -158,7 +167,6 @@ function AppContent() {
 
             {/* Placements */}
             <Route path="/placements" element={<PlacementsHome />} />
-            <Route path="/placements/dsa" element={<DsaTracker />} />
             <Route path="/placements/skills" element={<PlacementSkills />} />
             <Route path="/placements/companies" element={<Companies />} />
 
