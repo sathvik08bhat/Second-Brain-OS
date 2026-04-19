@@ -37,7 +37,7 @@ export const useGoogleStore = create(
           const tokenClient = window.google.accounts.oauth2.initTokenClient({
             client_id: GOOGLE_CLIENT_ID,
             scope: SCOPES,
-            callback: async (response) => {
+            callback: (response) => {
               if (response.error) {
                 reject(response);
                 return;
@@ -49,32 +49,35 @@ export const useGoogleStore = create(
                 tokenExpiry: Date.now() + (response.expires_in * 1000),
               });
 
-              // Fetch user email - MUST succeed before we consider auth complete
-              let email = null;
-              for (let attempt = 0; attempt < 3; attempt++) {
-                try {
-                  const res = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-                    headers: { Authorization: `Bearer ${accessToken}` }
+              // Fetch user email with retry, then mark authenticated
+              const fetchEmail = (attempt) => {
+                fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+                  headers: { Authorization: `Bearer ${accessToken}` }
+                })
+                  .then(r => r.json())
+                  .then(info => {
+                    if (info.email) {
+                      set({ userEmail: info.email, isAuthenticated: true });
+                      console.log('[GoogleStore] Auth complete, email:', info.email);
+                    } else if (attempt < 2) {
+                      console.warn('[GoogleStore] No email in response, retrying...');
+                      setTimeout(() => fetchEmail(attempt + 1), 1000);
+                    } else {
+                      set({ isAuthenticated: true });
+                      console.error('[GoogleStore] Could not get email after 3 attempts');
+                    }
+                  })
+                  .catch(err => {
+                    console.warn(`[GoogleStore] Email fetch attempt ${attempt + 1} failed:`, err);
+                    if (attempt < 2) {
+                      setTimeout(() => fetchEmail(attempt + 1), 1000);
+                    } else {
+                      set({ isAuthenticated: true });
+                      console.error('[GoogleStore] Email fetch failed after 3 attempts');
+                    }
                   });
-                  const info = await res.json();
-                  if (info.email) {
-                    email = info.email;
-                    break;
-                  }
-                } catch (err) {
-                  console.warn(`[GoogleStore] Email fetch attempt ${attempt + 1} failed:`, err);
-                  await new Promise(r => setTimeout(r, 1000)); // wait 1s before retry
-                }
-              }
-
-              if (email) {
-                set({ userEmail: email, isAuthenticated: true });
-                console.log('[GoogleStore] Auth complete, email:', email);
-              } else {
-                // Last resort: still set authenticated but log the issue
-                set({ isAuthenticated: true });
-                console.error('[GoogleStore] WARNING: Could not fetch user email after 3 attempts');
-              }
+              };
+              fetchEmail(0);
 
               resolve(response);
             },
