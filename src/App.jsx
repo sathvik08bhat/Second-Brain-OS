@@ -64,6 +64,9 @@ import Finance from './pages/startup/Finance';
 import OkrsDashboard from './pages/startup/OkrsDashboard';
 import B2cMatrix from './pages/startup/B2cMatrix';
 import ProductRoadmap from './pages/startup/ProductRoadmap';
+import CustomWikiHub from './pages/startup/CustomWikiHub';
+import ArchitectureGrid from './pages/startup/ArchitectureGrid';
+import MeetingTimeline from './pages/startup/MeetingTimeline';
 
 // Club
 import ClubHome from './pages/club/ClubHome';
@@ -231,6 +234,10 @@ function AppContent() {
             <Route path="/startup/okrs" element={<OkrsDashboard />} />
             <Route path="/startup/matrix" element={<B2cMatrix />} />
             <Route path="/startup/roadmap" element={<ProductRoadmap />} />
+            <Route path="/startup/wiki" element={<CustomWikiHub type="wiki" />} />
+            <Route path="/startup/sops" element={<CustomWikiHub type="sop" />} />
+            <Route path="/startup/architecture" element={<ArchitectureGrid />} />
+            <Route path="/startup/meetings" element={<MeetingTimeline />} />
 
             {/* Club */}
             <Route path="/club" element={<ClubHome />} />

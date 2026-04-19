@@ -19,7 +19,7 @@ const DEPARTMENTS = [
     dbs: [
       { id: 'okrs', title: 'OKRs & Strategy', icon: Target, isCustom: true, path: '/startup/okrs' },
       { id: 'b2cMatrix', title: 'The B2C Matrix', icon: Building2, isCustom: true, path: '/startup/matrix' },
-      { id: 'companyWiki', title: 'Company Wiki', icon: BookOpen },
+      { id: 'companyWiki', title: 'Company Wiki', icon: BookOpen, isCustom: true, path: '/startup/wiki' },
     ]
   },
   {
@@ -30,7 +30,7 @@ const DEPARTMENTS = [
       { id: 'productRoadmap', title: 'Product Roadmap', icon: Map, isCustom: true, path: '/startup/roadmap' },
       { id: 'tasks', title: 'Sprint Kanban', icon: Kanban, isCustom: true, path: '/startup/tasks' },
       { id: 'bugTracker', title: 'Bug Tracker', icon: Bug },
-      { id: 'architectureDB', title: 'Architecture DB', icon: Server },
+      { id: 'architectureDB', title: 'Architecture DB', icon: Server, isCustom: true, path: '/startup/architecture' },
     ]
   },
   {
@@ -58,8 +58,8 @@ const DEPARTMENTS = [
     color: '#10b981', // Emerald
     dbs: [
       { id: 'team', title: 'Team Roster & Access', icon: UserCircle },
-      { id: 'sopDB', title: 'SOP Hub', icon: CheckSquare },
-      { id: 'meetingNotes', title: 'Meeting Notes', icon: Calendar },
+      { id: 'sopDB', title: 'SOP Hub', icon: CheckSquare, isCustom: true, path: '/startup/sops' },
+      { id: 'meetingNotes', title: 'Meeting Notes', icon: Calendar, isCustom: true, path: '/startup/meetings' },
     ]
   },
   {
