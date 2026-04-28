@@ -7,7 +7,7 @@ export const useGlobalStore = create(
     (set) => ({
       quickCaptures: [],
       sidebarCollapsed: false,
-      theme: 'light', // User asked for the bright look primarily
+      theme: 'dark', // Antigravity OLED default
       accentColor: '#E8F396', // Canary Yellow pastel base
       enabledModules: { academics: true, aiml: true, dsa: true, cat: true, gsoc: true, placements: true, startup: true, club: true, fitness: true, finance: true, mentalHealth: true, leadership: true, hobbies: true, travel: true, personal: true },
 

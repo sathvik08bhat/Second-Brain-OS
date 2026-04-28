@@ -17,7 +17,7 @@ export default function PageWrapper({ children, showBackButton = true }) {
 
   return (
     <motion.div
-      className="page-content"
+      className="page-island"
       variants={pageVariants}
       initial="initial"
       animate="animate"
@@ -30,10 +30,10 @@ export default function PageWrapper({ children, showBackButton = true }) {
             onClick={() => navigate(-1)} 
             className="btn-icon" 
             style={{ 
-              background: 'var(--bg-glass)', border: '2px solid var(--border-primary)',
-              boxShadow: 'var(--shadow-sm)', color: 'var(--text-primary)',
+              background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
+              color: 'var(--text-secondary)',
               display: 'inline-flex', padding: '0.4rem 0.8rem', gap: '0.5rem',
-              fontWeight: 600, fontSize: '0.85rem'
+              fontWeight: 600, fontSize: '0.85rem', borderRadius: '10px'
             }}
           >
             <ArrowLeft size={16} /> Go Back

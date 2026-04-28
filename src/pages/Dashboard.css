@@ -3,15 +3,12 @@
   padding: 2.5rem 2rem;
   margin-bottom: var(--space-xl);
   border-radius: var(--radius-xl);
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(6, 182, 212, 0.05));
-  border: 1px solid var(--border-primary);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.06), rgba(6, 182, 212, 0.03));
+  border: 1px solid rgba(255, 255, 255, 0.04);
   overflow: hidden;
 }
 
-.hero-content {
-  position: relative;
-  z-index: 1;
-}
+.hero-content { position: relative; z-index: 1; }
 
 .hero-greeting {
   display: flex;
@@ -22,9 +19,7 @@
   margin-bottom: 0.5rem;
 }
 
-.hero-icon {
-  color: var(--accent-yellow);
-}
+.hero-icon { color: var(--accent-yellow); }
 
 .hero-title {
   font-size: var(--font-4xl);
@@ -41,11 +36,7 @@
   line-height: 1.6;
 }
 
-.hero-particles {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
+.hero-particles { position: absolute; inset: 0; pointer-events: none; }
 
 .particle {
   position: absolute;
@@ -56,7 +47,280 @@
   opacity: 0.3;
 }
 
-/* Section Grid */
+/* ── React Grid Layout Container ── */
+.ag-grid-container {
+  margin: 0 -8px;
+}
+
+.ag-grid-layout .react-grid-item {
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+.ag-grid-layout .react-grid-item.react-grid-placeholder {
+  background: rgba(139, 92, 246, 0.08) !important;
+  border: 2px dashed rgba(139, 92, 246, 0.3) !important;
+  border-radius: 16px !important;
+  opacity: 1 !important;
+}
+
+.ag-grid-layout .react-grid-item > .react-resizable-handle::after {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* ── Antigravity Widget Cards ── */
+.ag-widget {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  transition: box-shadow 300ms ease;
+}
+
+.ag-widget:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+.ag-widget-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.ag-widget-drag-handle {
+  cursor: grab;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  border-radius: 4px;
+  transition: color 150ms, background 150ms;
+}
+
+.ag-widget-drag-handle:hover {
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.ag-widget-drag-handle:active {
+  cursor: grabbing;
+}
+
+.ag-widget-body {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+/* ── Stats Grid ── */
+.ag-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  height: 100%;
+  align-content: center;
+}
+
+.ag-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--stat-color);
+  transition: all 200ms ease;
+}
+
+.ag-stat-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+  transform: translateY(-2px);
+}
+
+.ag-stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.ag-stat-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--foreground);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.ag-stat-label {
+  font-size: 0.65rem;
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+
+/* ── Task Widget ── */
+.ag-task-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.ag-mini-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0.3rem 0.6rem;
+  background: rgba(139, 92, 246, 0.08);
+  color: var(--accent-purple-light);
+  border: none;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms;
+}
+
+.ag-mini-btn:hover {
+  background: rgba(139, 92, 246, 0.15);
+}
+
+.ag-task-add {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.ag-task-add input {
+  flex: 1;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  color: var(--text-primary);
+  box-shadow: none;
+}
+
+.ag-task-add input:focus {
+  border-color: rgba(139, 92, 246, 0.3);
+  box-shadow: none;
+  transform: none;
+}
+
+.ag-task-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.ag-task-item:last-child {
+  border-bottom: none;
+}
+
+.ag-task-item input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--accent-purple);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.ag-task-title {
+  flex: 1;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ag-task-title.done {
+  text-decoration: line-through;
+  opacity: 0.4;
+}
+
+.ag-task-badge {
+  font-size: 0.6rem;
+  font-weight: 600;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+/* ── Calendar Widget ── */
+.ag-calendar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.ag-calendar-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.ag-calendar-item:last-child {
+  border-bottom: none;
+}
+
+.ag-cal-dot {
+  width: 3px;
+  min-height: 24px;
+  border-radius: 2px;
+  background: var(--accent-purple);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.ag-cal-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ag-cal-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ag-cal-time {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.6rem;
+  color: var(--text-muted);
+}
+
+.ag-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  padding: 1.5rem;
+}
+
+/* ── Section Grid (Life Areas) ── */
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -75,9 +339,7 @@
   cursor: pointer;
 }
 
-.section-card:hover {
-  transform: translateY(-2px);
-}
+.section-card:hover { transform: translateY(-2px); }
 
 .section-card-icon {
   width: 48px;
@@ -90,46 +352,30 @@
   transition: transform var(--transition-base);
 }
 
-.section-card:hover .section-card-icon {
-  transform: scale(1.1);
-}
+.section-card:hover .section-card-icon { transform: scale(1.1); }
 
-.section-card-info {
-  flex: 1;
-  min-width: 0;
-}
+.section-card-info { flex: 1; min-width: 0; }
+.section-card-info h3 { font-size: var(--font-md); font-weight: 700; margin-bottom: 0.1rem; }
+.section-card-info p { font-size: var(--font-xs); color: var(--text-tertiary); }
 
-.section-card-info h3 {
-  font-size: var(--font-md);
-  font-weight: 700;
-  margin-bottom: 0.1rem;
-}
-
-.section-card-info p {
-  font-size: var(--font-xs);
-  color: var(--text-tertiary);
-}
-
-.section-card-arrow {
-  color: var(--text-muted);
-  transition: all var(--transition-fast);
-}
-
-.section-card:hover .section-card-arrow {
-  color: var(--text-primary);
-  transform: translateX(4px);
-}
+.section-card-arrow { color: var(--text-muted); transition: all var(--transition-fast); }
+.section-card:hover .section-card-arrow { color: var(--text-primary); transform: translateX(4px); }
 
 .section-card-glow {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  bottom: 0; left: 0; right: 0;
   height: 2px;
   opacity: 0;
   transition: opacity var(--transition-base);
 }
 
-.section-card:hover .section-card-glow {
-  opacity: 1;
+.section-card:hover .section-card-glow { opacity: 1; }
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .ag-stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+  .ag-stats-grid { grid-template-columns: 1fr; }
 }

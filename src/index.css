@@ -1,28 +1,74 @@
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
 /* =============================================
    SECOND BRAIN OS — Global Design System
    ============================================= */
 
 :root {
-  /* ── Colors ── */
-  --bg-primary: #06060a;
-  --bg-secondary: #0d0d14;
-  --bg-tertiary: #13131d;
-  --bg-card: #20202a;
-  --bg-card-hover: #2a2a35;
-  --bg-glass: #13131d;
-  --bg-glass-hover: #20202a;
-  --bg-input: #13131d;
-  --bg-sidebar: #06060a;
-  --bg-modal: #0d0d14;
+  /* ── Semantic Design Tokens (Light Mode) ── */
+  --background: #ffffff;
+  --foreground: #09090b;
+  
+  --sidebar: #f4f4f5;
+  --sidebar-foreground: #18181b;
+  
+  --card: #ffffff;
+  --card-foreground: #09090b;
+  
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  
+  --primary: #18181b;
+  --primary-foreground: #fafafa;
+  
+  --border: #e4e4e7;
+  --radius: 0.75rem;
+}
 
-  --border-primary: #333344;
-  --border-secondary: #4a4a5e;
+.dark {
+  /* ── Semantic Design Tokens (Dark Mode / OLED) ── */
+  --background: #000000;
+  --foreground: #fafafa;
+  
+  --sidebar: #09090b;
+  --sidebar-foreground: #f4f4f5;
+  
+  --card: #09090b;
+  --card-foreground: #fafafa;
+  
+  --muted: #18181b;
+  --muted-foreground: #a1a1aa;
+  
+  --primary: #fafafa;
+  --primary-foreground: #18181b;
+  
+  --border: #27272a;
+}
+  
+:root {
+  /* ── Antigravity OLED Theme ── */
+  --bg-primary: #000000;
+
+
+  --bg-secondary: #0a0a0a;
+  --bg-tertiary: #111111;
+  --bg-card: #111111;
+  --bg-card-hover: #1a1a1a;
+  --bg-glass: rgba(255, 255, 255, 0.03);
+  --bg-glass-hover: rgba(255, 255, 255, 0.06);
+  --bg-input: #0d0d0d;
+  --bg-sidebar: rgba(0, 0, 0, 0.85);
+  --bg-modal: #0a0a0a;
+
+  --border-primary: rgba(255, 255, 255, 0.05);
+  --border-secondary: rgba(255, 255, 255, 0.08);
   --border-accent: var(--accent-primary, #8b5cf6);
 
   --text-primary: #f0f0f5;
   --text-secondary: #a0a0b8;
   --text-tertiary: #6b6b80;
-  --text-muted: #4a4a5e;
+  --text-muted: #3a3a4e;
 
   /* ── Accent Palette ── */
   --accent-purple: #8b5cf6;
@@ -48,14 +94,14 @@
   --gradient-blue: linear-gradient(135deg, #3b82f6, #60a5fa);
   --gradient-pink: linear-gradient(135deg, #ec4899, #f472b6);
 
-  /* ── Brutalist Shadows ── */
-  --shadow-sm: 2px 2px 0px #000;
-  --shadow-md: 4px 4px 0px #000;
-  --shadow-lg: 6px 6px 0px #000;
-  --shadow-xl: 10px 10px 0px #000;
-  --shadow-glow-purple: 4px 4px 0px #000;
-  --shadow-glow-cyan: 4px 4px 0px #000;
-  --shadow-glow-green: 4px 4px 0px #000;
+  /* ── Antigravity Floating Shadows ── */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 12px 48px rgba(0, 0, 0, 0.6);
+  --shadow-glow-purple: 0 4px 20px rgba(139, 92, 246, 0.15);
+  --shadow-glow-cyan: 0 4px 20px rgba(6, 182, 212, 0.15);
+  --shadow-glow-green: 0 4px 20px rgba(16, 185, 129, 0.15);
 
   /* ── Typography ── */
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -78,11 +124,11 @@
   --space-2xl: 3rem;
   --space-3xl: 4rem;
 
-  /* ── Brutalist Radius ── */
+  /* ── Radius ── */
   --radius-sm: 8px;
-  --radius-md: 16px;
-  --radius-lg: 24px;
-  --radius-xl: 32px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
   --radius-full: 999px;
 
   /* ── Transitions ── */
@@ -99,44 +145,41 @@
 }
 
 [data-theme="light"] {
-  /* ── Pastel Brutalism Aesthetics ── */
-  --bg-primary: #f8fafc;
-  --bg-secondary: #f1f5f9;
-  --bg-tertiary: #e2e8f0;
+  --bg-primary: #fafafa;
+  --bg-secondary: #f5f5f5;
+  --bg-tertiary: #eeeeee;
   --bg-card: #ffffff;
-  --bg-card-hover: #ffffff;
-  --bg-glass: #f1f5f9;
-  --bg-glass-hover: #e2e8f0;
+  --bg-card-hover: #fafafa;
+  --bg-glass: rgba(0, 0, 0, 0.02);
+  --bg-glass-hover: rgba(0, 0, 0, 0.04);
   --bg-input: #ffffff;
-  --bg-sidebar: #ffffff;
+  --bg-sidebar: rgba(255, 255, 255, 0.9);
   --bg-modal: #ffffff;
 
-  --border-primary: #000000;
-  --border-secondary: #000000;
-  --border-accent: var(--accent-primary, #000000);
+  --border-primary: rgba(0, 0, 0, 0.06);
+  --border-secondary: rgba(0, 0, 0, 0.1);
+  --border-accent: var(--accent-primary, #8b5cf6);
 
   --text-primary: #0f172a;
   --text-secondary: #475569;
   --text-tertiary: #64748b;
   --text-muted: #94a3b8;
 
-  --shadow-sm: 2px 2px 0px #000;
-  --shadow-md: 4px 4px 0px #000;
-  --shadow-lg: 6px 6px 0px #000;
-  --shadow-xl: 10px 10px 0px #000;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 12px 40px rgba(0, 0, 0, 0.12);
 }
 
-/* ── Animated Background ── 
-   Removed blurry orbs for solid brutalist grids 
-*/
+/* ── Subtle OLED dot grid ── */
 body::before {
   content: '';
   position: fixed;
   top: 0; left: 0; width: 100vw; height: 100vh;
-  background-image: radial-gradient(var(--border-secondary) 1px, transparent 1px);
-  background-size: 20px 20px;
+  background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 24px 24px;
   z-index: -1;
-  opacity: 0.3;
+  opacity: 1;
 }
 
 /* ── Reset ── */
@@ -249,20 +292,20 @@ input, textarea, select {
   font-family: var(--font-family);
   background: var(--bg-input);
   color: var(--text-primary);
-  border: 2px solid var(--border-primary);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--radius-md);
   padding: 0.6rem 0.85rem;
   font-size: var(--font-base);
   outline: none;
   transition: all var(--transition-fast);
   width: 100%;
-  box-shadow: 2px 2px 0px var(--border-primary);
+  box-shadow: none;
 }
 
 input:focus, textarea:focus, select:focus {
-  border-color: var(--border-accent);
-  box-shadow: 4px 4px 0px var(--border-accent);
-  transform: translate(-2px, -2px);
+  border-color: rgba(139, 92, 246, 0.4);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+  transform: none;
 }
 
 input::placeholder, textarea::placeholder {
@@ -282,22 +325,22 @@ select option {
   color: var(--text-primary);
 }
 
-/* ── Solid Bento Cards ── */
+/* ── Antigravity Floating Cards ── */
 .glass-card {
-  background: var(--bg-card);
-  border: 2px solid var(--border-primary);
+  background: #111111;
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: var(--radius-lg);
   transition: all 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
   position: relative;
   overflow: hidden;
 }
 
 .glass-card:hover {
-  transform: translate(-3px, -3px);
-  background: var(--bg-card-hover);
-  border-color: var(--border-accent);
-  box-shadow: 5px 5px 0px var(--border-accent);
+  transform: translateY(-3px);
+  background: #161616;
+  border-color: rgba(139, 92, 246, 0.12);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(139, 92, 246, 0.08);
 }
 
 .gradient-text {
@@ -315,45 +358,43 @@ select option {
   font-weight: 700;
   font-size: var(--font-sm);
   transition: all var(--transition-fast);
-  border: 2px solid #000;
-  box-shadow: 3px 3px 0px #000;
+  border: none;
+  box-shadow: 0 2px 12px rgba(139, 92, 246, 0.3);
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .btn-primary:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 5px 5px 0px #000;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
 }
 
 .btn-primary:active {
-  transform: translate(2px, 2px);
-  box-shadow: 0px 0px 0px #000;
+  transform: translateY(1px);
+  box-shadow: 0 1px 6px rgba(139, 92, 246, 0.2);
 }
 
 .btn-secondary {
-  background: var(--bg-card);
+  background: rgba(255, 255, 255, 0.03);
   color: var(--text-primary);
   padding: 0.6rem 1.4rem;
   border-radius: var(--radius-full);
   font-weight: 600;
   font-size: var(--font-sm);
   transition: all var(--transition-fast);
-  border: 2px solid var(--border-primary);
-  box-shadow: 3px 3px 0px var(--border-primary);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: none;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
 }
 
 .btn-secondary:hover {
-  background: var(--bg-glass-hover);
-  border-color: var(--border-accent);
-  box-shadow: 5px 5px 0px var(--border-accent);
-  transform: translate(-2px, -2px);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(139, 92, 246, 0.2);
+  transform: translateY(-1px);
 }
 
 .btn-danger {
@@ -519,6 +560,26 @@ select option {
   padding: var(--space-xl);
   max-width: var(--content-max-width);
   margin: 0 auto;
+}
+
+/* ── Island Layout (Antigravity) ── */
+.page-island {
+  padding: 16px;
+  margin: 16px;
+  max-width: var(--content-max-width);
+  min-height: calc(100vh - 32px);
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+}
+
+@media (max-width: 768px) {
+  .page-island {
+    margin: 8px;
+    padding: 12px;
+    min-height: calc(100vh - 16px);
+  }
 }
 
 .page-header {

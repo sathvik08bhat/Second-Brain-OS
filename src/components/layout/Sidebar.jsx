@@ -5,7 +5,8 @@ import {
   LayoutDashboard, GraduationCap, Code2, BarChart3, Rocket,
   Briefcase, Users, Dumbbell, Brain, Palette, Plane,
   ChevronLeft, ChevronRight, ChevronDown, Zap, Inbox, Sun, Moon,
-  CheckCircle, Wallet, Heart, Shield, Cpu, Link2, CalendarDays, Lock
+  CheckCircle, Wallet, Heart, Shield, Cpu, Link2, CalendarDays, Lock,
+  Target, FileText
 } from 'lucide-react';
 import { useGlobalStore } from '../../store/globalStore';
 import './Sidebar.css';
@@ -15,9 +16,17 @@ export const navSections = [
     title: 'OVERVIEW',
     items: [
       { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
-      { path: '/inbox', icon: Inbox, label: 'Quick Capture' },
-      { path: '/tasks', icon: CheckCircle, label: 'Task Tracker' },
-      { path: '/calendar', icon: CalendarDays, label: 'Calendar & Tasks' },
+      { path: '/focus', icon: Target, label: 'Focus Mode' },
+      { path: '/notes', icon: FileText, label: 'Notes' },
+      { path: '/inbox', icon: Brain, label: 'Daily Journal' },
+      { 
+        path: '/tasks', icon: CheckCircle, label: 'Task Tracker',
+        children: [
+          { path: '/tasks', label: 'Overview' },
+          { path: '/tasks/stats', label: 'Insights & Stats' },
+        ]
+      },
+      { path: '/calendar', icon: CalendarDays, label: 'Calendar' },
       { path: '/google-sync', icon: Link2, label: 'Google Sync' },
     ]
   },
@@ -176,7 +185,7 @@ export default function Sidebar({ onOpenSettings }) {
 
   return (
     <motion.aside
-      className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}
+      className={`sidebar bg-sidebar text-sidebar-foreground border-r border-border ${sidebarCollapsed ? 'collapsed' : ''}`}
       animate={{ width: sidebarCollapsed ? 70 : 260 }}
       transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
     >
@@ -214,7 +223,7 @@ export default function Sidebar({ onOpenSettings }) {
       <nav className="sidebar-nav">
         {navSections.map((section) => {
           // Filter items based on enabledModules (if no moduleId, it's always visible like Dashboard)
-          const visibleItems = section.items.filter(i => !i.moduleId || enabledModules[i.moduleId] !== false);
+          const visibleItems = section.items.filter(i => !i.moduleId || (enabledModules || {})[i.moduleId] !== false);
           if (visibleItems.length === 0) return null;
 
           return (
@@ -231,8 +240,8 @@ export default function Sidebar({ onOpenSettings }) {
                     className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
                     onClick={(e) => {
                       if (item.children && !sidebarCollapsed) {
-                        e.preventDefault();
-                        toggleExpand(item.path);
+                        // Don't prevent default, allow navigation
+                        if (!expandedItems[item.path]) toggleExpand(item.path);
                       }
                     }}
                   >
@@ -241,10 +250,16 @@ export default function Sidebar({ onOpenSettings }) {
                       <>
                         <span className="nav-label">{item.label}</span>
                         {item.children && (
-                          <ChevronDown
-                            size={14}
-                            className={`nav-chevron ${expandedItems[item.path] ? 'expanded' : ''}`}
-                          />
+                          <div 
+                            className={`nav-chevron-wrapper ${expandedItems[item.path] ? 'expanded' : ''}`}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              toggleExpand(item.path);
+                            }}
+                          >
+                            <ChevronDown size={14} className="nav-chevron" />
+                          </div>
                         )}
                       </>
                     )}
@@ -310,9 +325,8 @@ export default function Sidebar({ onOpenSettings }) {
                 onClick={() => useGlobalStore.getState().setAccentColor(color)}
                 style={{
                   width: '18px', height: '18px', borderRadius: '50%', background: color, 
-                  border: '2px solid #000', cursor: 'pointer',
-                  transform: 'translate(0, 0)', transition: 'all 0.2s',
-                  boxShadow: '1px 1px 0px #000'
+                  border: '1px solid var(--border)', cursor: 'pointer',
+                  transform: 'translate(0, 0)', transition: 'all 0.2s'
                 }}
                 onMouseOver={e => e.currentTarget.style.transform = 'translate(-1px, -1px)'}
                 onMouseOut={e => e.currentTarget.style.transform = 'translate(0, 0)'}

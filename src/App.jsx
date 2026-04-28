@@ -5,7 +5,7 @@ import Sidebar from './components/layout/Sidebar';
 import MobileNavbar from './components/layout/MobileNavbar';
 import PageWrapper from './components/layout/PageWrapper';
 import ErrorBoundary from './components/shared/ErrorBoundary';
-import SyncDebugPanel from './components/shared/SyncDebugPanel';
+
 import Modal from './components/shared/Modal';
 import { useGlobalStore } from './store/globalStore';
 import { useGoogleStore } from './store/googleStore';
@@ -13,10 +13,13 @@ import { useSyncStore, initAutoSync } from './store/syncStore';
 
 // Pages
 import Dashboard from './pages/Dashboard';
-import QuickCapture from './pages/QuickCapture';
+import DailyJournal from './pages/DailyJournal';
+import FocusMode from './pages/focus/FocusMode';
+import NotesPage from './pages/notes/NotesPage';
 
 // Tasks
 import TasksPage from './pages/tasks/TasksPage';
+import TaskStatsPage from './pages/tasks/TaskStatsPage';
 
 // Academics
 import AcademicsHome from './pages/academics/AcademicsHome';
@@ -137,6 +140,13 @@ function AppContent() {
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     document.documentElement.style.setProperty('--accent-primary', accentColor);
+    
+    // Toggle dark class for Tailwind
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   }, [theme, accentColor]);
 
   // One-time cleanup on mount: if we have stale auth with no email, clear it
@@ -178,17 +188,17 @@ function AppContent() {
   }, [isAuthenticated, userEmail, pullFromCloud]);
 
   return (
-    <div className="app-layout">
-      <SyncDebugPanel />
+    <div className="app-layout bg-background text-foreground transition-colors duration-300">
+
       <MobileNavbar />
       <Sidebar onOpenSettings={() => setIsSettingsOpen(true)} />
       <Modal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} title="OS Settings">
          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
            <h3 style={{ fontSize: 'var(--font-sm)', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Modules</h3>
            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-             {Object.keys(enabledModules).map(mod => (
+             {Object.keys(enabledModules || {}).map(mod => (
                <label key={mod} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', padding: '0.5rem', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)' }}>
-                 <input type="checkbox" checked={enabledModules[mod]} onChange={() => toggleModule(mod)} style={{ accentColor: 'var(--accent-primary)', width: 16, height: 16 }} />
+                 <input type="checkbox" checked={(enabledModules || {})[mod]} onChange={() => toggleModule(mod)} style={{ accentColor: 'var(--accent-primary)', width: 16, height: 16 }} />
                  <span style={{ fontSize: 'var(--font-sm)', textTransform: 'capitalize' }}>{mod.replace(/([A-Z])/g, ' $1')}</span>
                </label>
              ))}
@@ -200,8 +210,11 @@ function AppContent() {
           <AnimatePresence mode="wait">
             <Routes>
             <Route path="/" element={<Dashboard />} />
-            <Route path="/inbox" element={<QuickCapture />} />
-            <Route path="/tasks" element={<TasksPage />} />
+            <Route path="/focus" element={<FocusMode />} />
+            <Route path="/notes" element={<NotesPage />} />
+            <Route path="/inbox" element={<DailyJournal />} />
+             <Route path="/tasks" element={<TasksPage />} />
+             <Route path="/tasks/stats" element={<TaskStatsPage />} />
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/google-sync" element={<GoogleIntegration />} />
 

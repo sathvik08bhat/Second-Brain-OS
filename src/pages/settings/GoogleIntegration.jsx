@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Settings, LogIn, LogOut, Calendar, CheckSquare, RefreshCw, Shield, ExternalLink } from 'lucide-react';
+import { Settings, LogIn, LogOut, Calendar, CheckSquare, RefreshCw, Shield, ExternalLink, Check } from 'lucide-react';
 import PageWrapper from '../../components/layout/PageWrapper';
 import { useGoogleStore } from '../../store/googleStore';
 
 export default function GoogleIntegration() {
   const {
     isAuthenticated, userEmail, signIn, signOut,
-    syncPreferences, setSyncPreference, isTokenValid,
+    isTokenValid,
   } = useGoogleStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -27,113 +27,160 @@ export default function GoogleIntegration() {
 
   return (
     <PageWrapper>
-      <div className="page-header">
-        <h1><span className="gradient-text">🔗 Google Integration</span></h1>
-        <p>Connect Google Calendar & Tasks to sync deadlines</p>
-      </div>
-
-      {/* Connection Status */}
-      <motion.div
-        className="glass-card"
-        style={{ padding: '1.5rem', marginBottom: 'var(--space-xl)' }}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-          <div style={{
-            width: 48, height: 48, borderRadius: 'var(--radius-md)',
-            background: isAuthenticated && tokenValid ? '#10b98115' : '#64748b15',
-            color: isAuthenticated && tokenValid ? '#10b981' : '#64748b',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            border: `2px solid ${isAuthenticated && tokenValid ? '#10b981' : '#64748b'}30`,
-          }}>
-            <Shield size={24} />
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: 'var(--font-md)' }}>
-              {isAuthenticated && tokenValid ? '✅ Connected' : '❌ Not Connected'}
-            </div>
-            {userEmail && <div style={{ fontSize: 'var(--font-sm)', color: 'var(--text-tertiary)' }}>{userEmail}</div>}
-            {isAuthenticated && !tokenValid && <div style={{ fontSize: 'var(--font-xs)', color: 'var(--accent-yellow)' }}>Token expired — click Reconnect</div>}
-          </div>
-          {isAuthenticated ? (
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button className="btn-secondary" onClick={handleSignIn} disabled={loading}>
-                <RefreshCw size={14} /> Reconnect
-              </button>
-              <button className="btn-danger" onClick={signOut} style={{ borderRadius: 'var(--radius-full)', padding: '0.6rem 1.2rem' }}>
-                <LogOut size={14} /> Disconnect
-              </button>
-            </div>
-          ) : (
-            <button className="btn-primary" onClick={handleSignIn} disabled={loading}>
-              {loading ? <><RefreshCw size={14} className="animate-spin" /> Connecting...</> : <><LogIn size={14} /> Connect Google</>}
-            </button>
-          )}
+      <div className="max-w-4xl mx-auto w-full flex flex-col gap-8 p-6 lg:p-12 text-foreground">
+        {/* Header Section */}
+        <div className="text-center md:text-left space-y-2">
+          <h1 className="text-4xl font-black tracking-tight bg-gradient-to-r from-blue-500 via-green-500 to-red-500 bg-clip-text text-transparent inline-block">
+            Google Workspace
+          </h1>
+          <p className="text-muted-foreground text-lg">
+            Unified synchronization for your digital ecosystem
+          </p>
         </div>
+
+        {/* Status Card */}
+        <motion.div 
+          className="flex flex-col md:flex-row items-center justify-between bg-card border border-border rounded-2xl p-8 gap-6 shadow-sm"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
+            <div className={`p-5 rounded-2xl transition-all duration-300 border ${
+              isAuthenticated && tokenValid 
+                ? 'bg-green-500/10 text-green-500 border-green-500/20' 
+                : 'bg-muted text-muted-foreground border-border'
+            }`}>
+              <Shield size={40} />
+            </div>
+            
+            <div className="space-y-1">
+              <div className="text-2xl font-bold">
+                {isAuthenticated && tokenValid ? 'Workspace Connected' : 'Workspace Disconnected'}
+              </div>
+              {userEmail && <div className="text-muted-foreground font-medium flex items-center gap-2 justify-center md:justify-start">
+                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                {userEmail}
+              </div>}
+              {isAuthenticated && !tokenValid && (
+                <div className="text-yellow-500 font-bold text-sm animate-pulse">
+                  Session expired — Re-authentication required
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+            {isAuthenticated ? (
+              <>
+                <button 
+                  className="bg-primary text-primary-foreground px-6 py-3 rounded-xl font-bold transition-all hover:opacity-90 active:scale-95 flex items-center justify-center gap-2"
+                  onClick={handleSignIn} 
+                  disabled={loading}
+                >
+                  {loading ? <RefreshCw className="animate-spin" /> : <RefreshCw size={18} />}
+                  Reconnect
+                </button>
+                <button 
+                  className="px-6 py-3 rounded-xl font-bold text-red-500 hover:bg-red-500/10 transition-all flex items-center justify-center gap-2"
+                  onClick={signOut}
+                >
+                  <LogOut size={18} /> Disconnect
+                </button>
+              </>
+            ) : (
+              <button 
+                className="bg-primary text-primary-foreground px-8 py-4 rounded-xl font-bold transition-all hover:opacity-90 active:scale-95 flex items-center justify-center gap-2 shadow-lg shadow-primary/10"
+                onClick={handleSignIn} 
+                disabled={loading}
+              >
+                {loading ? <RefreshCw className="animate-spin" /> : <LogIn size={20} />}
+                {loading ? 'Connecting...' : 'Connect Workspace'}
+              </button>
+            )}
+          </div>
+        </motion.div>
+
         {error && (
-          <div style={{ padding: '0.75rem', background: '#ef444415', border: '2px solid #ef444430', borderRadius: 'var(--radius-md)', color: 'var(--accent-red)', fontSize: 'var(--font-sm)' }}>
+          <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-sm font-medium">
             ⚠️ {error}
           </div>
         )}
-      </motion.div>
 
-      {/* Features */}
-      <div className="grid-2" style={{ marginBottom: 'var(--space-xl)' }}>
-        <motion.div className="glass-card" style={{ padding: '1.25rem' }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
-            <div style={{ width: 40, height: 40, borderRadius: 'var(--radius-sm)', background: '#3b82f615', color: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Calendar size={20} />
+        {/* Feature Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <motion.div 
+            className="p-8 bg-card border border-border rounded-2xl space-y-6"
+            initial={{ opacity: 0, scale: 0.95 }} 
+            animate={{ opacity: 1, scale: 1 }} 
+            transition={{ delay: 0.1 }}
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
+                <Calendar size={24} />
+              </div>
+              <h3 className="font-bold text-xl">Google Calendar</h3>
             </div>
-            <div>
-              <div style={{ fontWeight: 700 }}>Google Calendar</div>
-              <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)' }}>Sync deadlines as calendar events</div>
-            </div>
-          </div>
-          <ul style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)', paddingLeft: '1.2rem', lineHeight: 2 }}>
-            <li>Task deadlines → Calendar events</li>
-            <li>Course deadlines → Reminders</li>
-            <li>Exam dates → All-day events</li>
-            <li>AI/ML roadmap milestones</li>
-          </ul>
-        </motion.div>
+            <ul className="space-y-3">
+              {[
+                'Automatic deadline synchronization',
+                'Course and exam schedule integration',
+                'Real-time event updates',
+                'Milestone tracking from roadmap'
+              ].map((text, i) => (
+                <li key={i} className="flex items-start gap-3 text-muted-foreground text-sm leading-relaxed">
+                  <Check size={16} className="text-blue-500 mt-0.5 shrink-0" />
+                  {text}
+                </li>
+              ))}
+            </ul>
+          </motion.div>
 
-        <motion.div className="glass-card" style={{ padding: '1.25rem' }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
-            <div style={{ width: 40, height: 40, borderRadius: 'var(--radius-sm)', background: '#10b98115', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <CheckSquare size={20} />
+          <motion.div 
+            className="p-8 bg-card border border-border rounded-2xl space-y-6"
+            initial={{ opacity: 0, scale: 0.95 }} 
+            animate={{ opacity: 1, scale: 1 }} 
+            transition={{ delay: 0.2 }}
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center text-green-500">
+                <CheckSquare size={24} />
+              </div>
+              <h3 className="font-bold text-xl">Google Tasks</h3>
             </div>
-            <div>
-              <div style={{ fontWeight: 700 }}>Google Tasks</div>
-              <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)' }}>Sync tasks to Google Tasks list</div>
-            </div>
-          </div>
-          <ul style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)', paddingLeft: '1.2rem', lineHeight: 2 }}>
-            <li>Create tasks in default list</li>
-            <li>Due dates sync automatically</li>
-            <li>Mark complete in either app</li>
-            <li>Task descriptions preserved</li>
-          </ul>
+            <ul className="space-y-3">
+              {[
+                'Two-way task list synchronization',
+                'Due date and priority preservation',
+                'Cross-platform completion status',
+                'Native description support'
+              ].map((text, i) => (
+                <li key={i} className="flex items-start gap-3 text-muted-foreground text-sm leading-relaxed">
+                  <Check size={16} className="text-green-500 mt-0.5 shrink-0" />
+                  {text}
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        </div>
+
+        {/* Footer Links */}
+        <motion.div 
+          className="text-center md:text-left"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+        >
+          <a 
+            href="https://console.cloud.google.com" 
+            target="_blank" 
+            rel="noreferrer" 
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors font-medium"
+          >
+            Configure Google Cloud Console <ExternalLink size={14} />
+          </a>
         </motion.div>
       </div>
-
-      {/* Setup Guide */}
-      <motion.div className="glass-card" style={{ padding: '1.5rem' }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-        <div className="section-title" style={{ marginBottom: 'var(--space-md)' }}>
-          <Settings size={18} /> Setup Guide
-        </div>
-        <div style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)', lineHeight: 1.8 }}>
-          <p style={{ marginBottom: '0.75rem' }}>To enable Google integration, you need a Google Cloud OAuth Client ID:</p>
-          <ol style={{ paddingLeft: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <li>Go to <a href="https://console.cloud.google.com" target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>Google Cloud Console <ExternalLink size={12} /></a></li>
-            <li>Create a new project (or use existing)</li>
-            <li>Enable <strong>Google Calendar API</strong> and <strong>Google Tasks API</strong></li>
-            <li>Go to <strong>Credentials</strong> → Create <strong>OAuth 2.0 Client ID</strong> (Web application)</li>
-            <li>Add <code style={{ background: 'var(--bg-glass)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>https://second-brain-os-two.vercel.app</code> and <code style={{ background: 'var(--bg-glass)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>http://localhost:5174</code> to Authorized JavaScript origins</li>
-            <li>✅ Client ID is already configured in the app</li>
-          </ol>
-        </div>
-      </motion.div>
     </PageWrapper>
   );
 }
+
