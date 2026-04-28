@@ -13,7 +13,7 @@ export default function AimlRoadmap() {
   const [showAddTopic, setShowAddTopic] = useState(null); // categoryId or null
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [newTopic, setNewTopic] = useState({ name: '', deadline: '' });
-  const [newCategory, setNewCategory] = useState({ category: '', color: '#8b5cf6' });
+  const [newCategory, setNewCategory] = useState({ category: '', color: 'var(--accent-primary)' });
   const [syncing, setSyncing] = useState(null);
 
   const toggleCat = (id) => setExpandedCats(prev => ({ ...prev, [id]: !prev[id] }));
@@ -28,7 +28,7 @@ export default function AimlRoadmap() {
   const handleAddCategory = () => {
     if (!newCategory.category.trim()) return;
     addCategory(newCategory);
-    setNewCategory({ category: '', color: '#8b5cf6' });
+    setNewCategory({ category: '', color: 'var(--accent-primary)' });
     setShowAddCategory(false);
   };
 
@@ -48,7 +48,7 @@ export default function AimlRoadmap() {
     setSyncing(null);
   };
 
-  const catColors = ['#8b5cf6', '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#06b6d4', '#ec4899', '#f97316'];
+  const catColors = ['var(--accent-primary)', '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#06b6d4', '#ec4899', '#f97316'];
 
   return (
     <PageWrapper>

@@ -69,7 +69,7 @@ export default function CGPATracker() {
                 <Bar dataKey="sgpa" fill="url(#sgpaGradient)" radius={[8, 8, 0, 0]} />
                 <defs>
                   <linearGradient id="sgpaGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#8b5cf6" />
+                    <stop offset="0%" stopColor="var(--accent-primary)" />
                     <stop offset="100%" stopColor="#06b6d4" />
                   </linearGradient>
                 </defs>
@@ -86,7 +86,7 @@ export default function CGPATracker() {
                 <XAxis dataKey="semester" tick={{ fill: '#6b6b80', fontSize: 12 }} />
                 <YAxis domain={[0, 10]} tick={{ fill: '#6b6b80', fontSize: 12 }} />
                 <Tooltip contentStyle={{ background: '#13131d', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, color: '#f0f0f5' }} />
-                <Line type="monotone" dataKey="cgpa" stroke="#8b5cf6" strokeWidth={3} dot={{ fill: '#8b5cf6', r: 5 }} activeDot={{ r: 7 }} />
+                <Line type="monotone" dataKey="cgpa" stroke="var(--accent-primary)" strokeWidth={3} dot={{ fill: 'var(--accent-primary)', r: 5 }} activeDot={{ r: 7 }} />
               </LineChart>
             </ResponsiveContainer>
           </motion.div>

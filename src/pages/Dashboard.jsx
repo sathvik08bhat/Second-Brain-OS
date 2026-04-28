@@ -40,7 +40,7 @@ const DEFAULT_LAYOUT = [
 function WidgetCard({ title, icon: Icon, children, id }) {
   return (
     <motion.div
-      className="ag-widget"
+      className="ag-widget overflow-hidden"
       whileHover={{ scale: 1.008, transition: { type: 'spring', stiffness: 400, damping: 25 } }}
     >
       <div className="ag-widget-header">
@@ -67,7 +67,7 @@ function StatsWidget() {
 
   return (
     <div className="ag-stats-grid">
-      <div className="ag-stat-card group" style={{ '--stat-color': '#8b5cf6' }}>
+      <div className="ag-stat-card group" style={{ '--stat-color': 'var(--accent-primary)' }}>
         <CheckCircle size={20} />
         <div className="ag-stat-info">
           <span className="text-primary font-bold text-3xl">{pendingTasks}</span>
@@ -133,7 +133,7 @@ function TaskWidget() {
   return (
     <div className="ag-task-list">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-        <Link to="/tasks" style={{ fontSize: '0.65rem', color: 'var(--accent-purple-light)' }}>View All →</Link>
+        <Link to="/tasks" style={{ fontSize: '0.65rem', color: 'var(--accent-primary)', fontWeight: 600 }}>View All →</Link>
         <button className="ag-mini-btn" onClick={() => setShowAdd(!showAdd)}>
           <Plus size={12} />
         </button>
@@ -221,7 +221,7 @@ function CalendarWidget() {
 
 // ── Life Areas Grid (below the widgets) ──
 const sections = [
-  { moduleId: 'academics', path: '/academics', icon: GraduationCap, label: 'Academics', desc: 'CGPA, Exams, Attendance', color: '#8b5cf6' },
+  { moduleId: 'academics', path: '/academics', icon: GraduationCap, label: 'Academics', desc: 'CGPA, Exams, Attendance', color: 'var(--accent-primary)' },
   { moduleId: 'dsa', path: '/dsa', icon: Code2, label: 'DSA Hub', desc: 'LeetCode & Roadmap', color: '#06b6d4' },
   { moduleId: 'aiml', path: '/aiml', icon: Cpu, label: 'AI/ML', desc: 'Learning & Research', color: '#ef4444' },
   { moduleId: 'placements', path: '/placements', icon: Briefcase, label: 'Placements', desc: 'DSA & Skills', color: '#3b82f6' },
@@ -233,7 +233,7 @@ const sections = [
   { moduleId: 'fitness', path: '/fitness', icon: Dumbbell, label: 'Fitness', desc: '89kg → 75kg Journey', color: '#22d3ee' },
   { moduleId: 'mentalHealth', path: '/mental-health', icon: Heart, label: 'Mental Health', desc: 'Wellbeing & Growth', color: '#ec4899' },
   { moduleId: 'leadership', path: '/leadership', icon: Shield, label: 'Leadership', desc: 'Skills & Development', color: '#f59e0b' },
-  { moduleId: 'personal', path: '/personal', icon: Brain, label: 'Personal Dev', desc: 'Mind & Growth', color: '#a78bfa' },
+  { moduleId: 'personal', path: '/personal', icon: Brain, label: 'Personal Dev', desc: 'Mind & Growth', color: 'var(--accent-primary)' },
   { moduleId: 'hobbies', path: '/hobbies', icon: Palette, label: 'Hobbies', desc: 'Skills & Fun', color: '#f43f5e' },
   { moduleId: 'travel', path: '/travel', icon: Plane, label: 'Travel', desc: 'Explore the World', color: '#06b6d4' },
 ];
@@ -279,29 +279,19 @@ export default function Dashboard() {
             Command center for your academics, career, fitness, and life goals.
           </p>
         </motion.div>
-        <div className="hero-particles">
-          {[...Array(6)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="particle"
-              animate={{ y: [0, -30, 0], opacity: [0.2, 0.6, 0.2], scale: [1, 1.2, 1] }}
-              transition={{ duration: 3 + i * 0.5, repeat: Infinity, delay: i * 0.3 }}
-              style={{ left: `${15 + i * 15}%`, top: `${20 + (i % 3) * 25}%` }}
-            />
-          ))}
-        </div>
       </div>
 
       {/* Draggable Grid Widgets */}
       <div className="ag-grid-container">
         <ResponsiveGridLayout
           className="ag-grid-layout"
-          layouts={{ lg: layout }}
+          layouts={{ lg: layout, md: layout, sm: layout, xs: layout, xxs: layout }}
           breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
           cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
           rowHeight={30}
           isDraggable={true}
           isResizable={true}
+          resizeHandles={['se', 'e', 's']}
           draggableHandle=".ag-widget-drag-handle"
           onLayoutChange={handleLayoutChange}
           compactType="vertical"
@@ -341,25 +331,21 @@ export default function Dashboard() {
           <motion.div key={section.path} variants={itemVariants}>
             <Link 
               to={section.path} 
-              className="flex items-center gap-4 p-5 bg-card border border-border rounded-2xl hover:translate-y-[-2px] transition-all group relative overflow-hidden"
+              className="section-card"
             >
               <div 
-                className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110" 
+                className="section-card-icon" 
                 style={{ background: `${section.color}15`, color: section.color }}
               >
                 <section.icon size={24} />
               </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-card-foreground text-lg leading-tight mb-1">{section.label}</h3>
-                <p className="text-muted-foreground text-xs leading-relaxed">{section.desc}</p>
+              <div className="section-card-info">
+                <h3>{section.label}</h3>
+                <p>{section.desc}</p>
               </div>
-              <div className="text-muted-foreground transition-all group-hover:translate-x-1 group-hover:text-card-foreground">
+              <div className="section-card-arrow">
                 <ArrowRight size={18} />
               </div>
-              <div 
-                className="absolute bottom-0 left-0 right-0 h-1 opacity-0 transition-opacity group-hover:opacity-100" 
-                style={{ background: section.color }}
-              />
             </Link>
           </motion.div>
         ))}

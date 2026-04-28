@@ -15,7 +15,7 @@ const DEPARTMENTS = [
   {
     title: '🧠 1. Executive Board',
     subtitle: 'Command Center & Strategy',
-    color: '#8b5cf6', // Purple
+    color: 'var(--accent-primary)', // Purple
     dbs: [
       { id: 'okrs', title: 'OKRs & Strategy', icon: Target, isCustom: true, path: '/startup/okrs' },
       { id: 'b2cMatrix', title: 'The B2C Matrix', icon: Building2, isCustom: true, path: '/startup/matrix' },
@@ -99,9 +99,9 @@ export default function StartupHome() {
       </div>
 
       {/* ── Executive Daily Briefing ── */}
-      <div className="glass-card" style={{ padding: '1.5rem', marginBottom: '2rem', borderLeft: '4px solid #8b5cf6' }}>
+      <div className="glass-card" style={{ padding: '1.5rem', marginBottom: '2rem', borderLeft: '4px solid var(--accent-primary)' }}>
         <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Activity size={20} color="#8b5cf6" /> Executive Briefing
+          <Activity size={20} color="var(--accent-primary)" /> Executive Briefing
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
           

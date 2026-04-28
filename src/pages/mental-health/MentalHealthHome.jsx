@@ -38,7 +38,7 @@ export default function MentalHealthHome() {
 
   const subPages = [
     { path: '/mental-health/mood', icon: Smile, title: 'Mood Tracker', desc: 'Daily mood logging & trends', color: '#f59e0b' },
-    { path: '/mental-health/checkin', icon: Activity, title: 'Wellness Check-in', desc: 'Rate all mental health aspects', color: '#8b5cf6' },
+    { path: '/mental-health/checkin', icon: Activity, title: 'Wellness Check-in', desc: 'Rate all mental health aspects', color: 'var(--accent-primary)' },
     { path: '/mental-health/resources', icon: Brain, title: 'Improvement Resources', desc: 'Techniques to improve every aspect', color: '#06b6d4' },
   ];
 
@@ -57,7 +57,7 @@ export default function MentalHealthHome() {
       {/* Stats */}
       <div className="grid-4" style={{ marginBottom: 'var(--space-xl)' }}>
         <StatsCard icon={Heart} label="Overall Score" value={overallScore || '—'} subtitle="30-day average" color="#ec4899" />
-        <StatsCard icon={Activity} label="Check-ins" value={checkins.length} subtitle="Total entries" color="#8b5cf6" delay={0.1} />
+        <StatsCard icon={Activity} label="Check-ins" value={checkins.length} subtitle="Total entries" color="var(--accent-primary)" delay={0.1} />
         <StatsCard icon={Sun} label="Gratitude" value={gratitudeEntries.length} subtitle="Journal entries" color="#f59e0b" delay={0.2} />
         <StatsCard icon={Brain} label="Meditation" value={meditationSessions.length} subtitle="Sessions logged" color="#06b6d4" delay={0.3} />
       </div>
@@ -72,7 +72,7 @@ export default function MentalHealthHome() {
                 <PolarGrid stroke="rgba(255,255,255,0.1)" />
                 <PolarAngleAxis dataKey="aspect" tick={{ fill: 'var(--text-secondary)', fontSize: 10 }} />
                 <PolarRadiusAxis angle={30} domain={[0, 10]} tick={{ fill: '#6b6b80', fontSize: 10 }} />
-                <Radar name="Score" dataKey="value" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.3} strokeWidth={2} />
+                <Radar name="Score" dataKey="value" stroke="var(--accent-primary)" fill="var(--accent-primary)" fillOpacity={0.3} strokeWidth={2} />
                 <Tooltip contentStyle={{ background: 'var(--bg-card)', border: '2px solid var(--border-primary)', borderRadius: 8, color: 'var(--text-primary)' }} />
               </RadarChart>
             </ResponsiveContainer>

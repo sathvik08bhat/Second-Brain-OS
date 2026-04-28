@@ -30,7 +30,7 @@ export default function Habits() {
   const startEdit = (h) => { setForm({ title: h.title, frequency: h.frequency, category: h.category }); setEditId(h.id); setShowModal(true); };
 
   const getCategoryColor = (cat) => { 
-    const colors = { health: '#10b981', learning: '#3b82f6', productivity: '#8b5cf6', mindfulness: '#ec4899' }; 
+    const colors = { health: '#10b981', learning: '#3b82f6', productivity: 'var(--accent-primary)', mindfulness: '#ec4899' }; 
     if (colors[cat]) return colors[cat];
     let hash = 0;
     for (let i = 0; i < cat.length; i++) hash = cat.charCodeAt(i) + ((hash << 5) - hash);

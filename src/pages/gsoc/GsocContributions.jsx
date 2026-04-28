@@ -16,7 +16,7 @@ export default function GsocContributions() {
   const resetForm = () => { setForm({ repo: '', type: 'pr', title: '', url: '', status: 'open', date: '', notes: '' }); setEditId(null); setShowModal(false); };
   const startEdit = (c) => { setForm({ repo: c.repo, type: c.type, title: c.title, url: c.url || '', status: c.status, date: c.date || '', notes: c.notes || '' }); setEditId(c.id); setShowModal(true); };
 
-  const typeColors = { pr: '#10b981', issue: '#f59e0b', commit: '#3b82f6', review: '#8b5cf6' };
+  const typeColors = { pr: '#10b981', issue: '#f59e0b', commit: '#3b82f6', review: 'var(--accent-primary)' };
   const statusColors = { open: 'badge-yellow', merged: 'badge-green', closed: 'badge-red' };
 
   return (

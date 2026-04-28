@@ -6,7 +6,7 @@ import Modal from '../../components/shared/Modal';
 import { useAimlStore } from '../../store/aimlStore';
 import { useGoogleStore } from '../../store/googleStore';
 
-const statusColors = { ideation: '#8b5cf6', building: '#f59e0b', testing: '#3b82f6', shipped: '#10b981' };
+const statusColors = { ideation: 'var(--accent-primary)', building: '#f59e0b', testing: '#3b82f6', shipped: '#10b981' };
 const statusLabels = { ideation: '💡 Ideation', building: '🔨 Building', testing: '🧪 Testing', shipped: '🚀 Shipped' };
 
 export default function AimlProjects() {

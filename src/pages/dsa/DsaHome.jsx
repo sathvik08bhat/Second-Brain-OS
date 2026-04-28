@@ -93,7 +93,7 @@ export default function DsaHome() {
               label="Roadmap Mastery"
               value={`${masteredTopics}/${roadmap.length}`}
               subtitle={`${learningTopics} currently learning`}
-              color="#8b5cf6"
+              color="var(--accent-primary)"
               delay={0.1}
             />
             <StatsCard
@@ -163,7 +163,7 @@ export default function DsaHome() {
       <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 8 }}><Code2 size={18} /> Tools</h3>
       <div className="grid-2">
         <Link to="/dsa/roadmap" className="glass-card" style={{ padding: '1.5rem', textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '1rem', transition: 'all 0.2s' }}>
-          <div style={{ width: 48, height: 48, background: '#8b5cf620', color: '#8b5cf6', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 48, height: 48, background: 'var(--accent-primary)20', color: 'var(--accent-primary)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Target size={24} />
           </div>
           <div>

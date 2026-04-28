@@ -28,7 +28,7 @@ export default function ArchitectureGrid() {
   const getCategoryIcon = (cat) => {
     switch (cat) {
       case 'Frontend': return <Layout size={20} color="#f59e0b" />;
-      case 'Backend': return <Server size={20} color="#8b5cf6" />;
+      case 'Backend': return <Server size={20} color="var(--accent-primary)" />;
       case 'Database': return <Database size={20} color="#3b82f6" />;
       case 'Infrastructure': return <Cloud size={20} color="#10b981" />;
       default: return <Server size={20} color="#ec4899" />;
@@ -40,7 +40,7 @@ export default function ArchitectureGrid() {
       case 'Stable': return '#10b981';
       case 'Evaluating': return '#f59e0b';
       case 'Deprecated': return '#ef4444';
-      default: return '#8b5cf6';
+      default: return 'var(--accent-primary)';
     }
   };
 
@@ -100,7 +100,7 @@ export default function ArchitectureGrid() {
                       </span>
 
                       {tech.link && (
-                        <a href={tech.link} target="_blank" rel="noreferrer" style={{ fontSize: '0.8rem', color: '#8b5cf6', textDecoration: 'none' }}>
+                        <a href={tech.link} target="_blank" rel="noreferrer" style={{ fontSize: '0.8rem', color: 'var(--accent-primary)', textDecoration: 'none' }}>
                           Docs →
                         </a>
                       )}

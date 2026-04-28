@@ -29,7 +29,7 @@ export default function B2cMatrix() {
             <ArrowLeft size={14} /> Back to Startup OS
           </Link>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#8b5cf6' }}></div>
+            <div style={{ width: 12, height: 12, borderRadius: '50%', background: 'var(--accent-primary)' }}></div>
             <h1>B2C Idea Matrix</h1>
           </div>
           <p style={{ marginTop: '0.25rem' }}>Visually validate ideas mapping Demand against Feasibility.</p>
@@ -108,13 +108,13 @@ export default function B2cMatrix() {
           <div className="form-group">
             <label>Market Demand (0 to 100)</label>
             <input type="range" min="0" max="100" value={formData.demand} onChange={e => setFormData({ ...formData, demand: e.target.value })} style={{ width: '100%' }} />
-            <div style={{ textAlign: 'right', fontSize: '0.85rem', color: '#8b5cf6' }}>{formData.demand}/100</div>
+            <div style={{ textAlign: 'right', fontSize: '0.85rem', color: 'var(--accent-primary)' }}>{formData.demand}/100</div>
           </div>
 
           <div className="form-group">
             <label>Feasibility / Ease of Building (0 to 100)</label>
             <input type="range" min="0" max="100" value={formData.feasibility} onChange={e => setFormData({ ...formData, feasibility: e.target.value })} style={{ width: '100%' }} />
-            <div style={{ textAlign: 'right', fontSize: '0.85rem', color: '#8b5cf6' }}>{formData.feasibility}/100</div>
+            <div style={{ textAlign: 'right', fontSize: '0.85rem', color: 'var(--accent-primary)' }}>{formData.feasibility}/100</div>
           </div>
 
           <button onClick={handleSave} className="btn-primary" style={{ marginTop: '1rem', width: '100%' }}>Plot Idea</button>

@@ -53,7 +53,7 @@ export default function CustomWikiHub({ type }) {
           </Link>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <div style={{ width: 40, height: 40, borderRadius: 'var(--radius-md)', background: type === 'wiki' ? 'rgba(139, 92, 246, 0.1)' : 'rgba(16, 185, 129, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {type === 'wiki' ? <BookOpen size={24} color="#8b5cf6" /> : <CheckSquare size={24} color="#10b981" />}
+              {type === 'wiki' ? <BookOpen size={24} color="var(--accent-primary)" /> : <CheckSquare size={24} color="#10b981" />}
             </div>
             <h1>{type === 'wiki' ? 'Company Wiki' : 'SOP Hub'}</h1>
           </div>

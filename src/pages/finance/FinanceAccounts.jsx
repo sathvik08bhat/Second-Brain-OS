@@ -6,7 +6,7 @@ import Modal from '../../components/shared/Modal';
 import { useFinanceStore } from '../../store/financeStore';
 
 const accountTypeIcons = { bank: Building2, cash: Banknote, upi: Smartphone, credit: CreditCard, wallet: Wallet };
-const accountTypeColors = { bank: '#3b82f6', cash: '#10b981', upi: '#8b5cf6', credit: '#ef4444', wallet: '#f59e0b' };
+const accountTypeColors = { bank: '#3b82f6', cash: '#10b981', upi: 'var(--accent-primary)', credit: '#ef4444', wallet: '#f59e0b' };
 
 export default function FinanceAccounts() {
   const { accounts, addAccount, updateAccount, deleteAccount } = useFinanceStore();

@@ -27,7 +27,7 @@ export default function OkrsDashboard() {
       case 'On Track': return '#3b82f6';
       case 'At Risk': return '#f59e0b';
       case 'Missed': return '#ef4444';
-      default: return '#8b5cf6';
+      default: return 'var(--accent-primary)';
     }
   };
 
@@ -44,7 +44,7 @@ export default function OkrsDashboard() {
           </Link>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <div style={{ width: 40, height: 40, borderRadius: 'var(--radius-md)', background: 'rgba(139, 92, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Target size={24} color="#8b5cf6" />
+              <Target size={24} color="var(--accent-primary)" />
             </div>
             <h1>OKRs & Strategy</h1>
           </div>
@@ -60,10 +60,10 @@ export default function OkrsDashboard() {
         <h3 style={{ marginBottom: '1rem', color: 'var(--text-secondary)' }}>Company Overview Progress</h3>
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ fontSize: '3rem', fontWeight: 800, color: '#8b5cf6' }}>{overallProgress}%</div>
+          <div style={{ fontSize: '3rem', fontWeight: 800, color: 'var(--accent-primary)' }}>{overallProgress}%</div>
           <div style={{ flex: 1 }}>
             <div style={{ width: '100%', height: '12px', background: 'rgba(255,255,255,0.1)', borderRadius: '100px', overflow: 'hidden' }}>
-              <div style={{ width: `${overallProgress}%`, height: '100%', background: '#8b5cf6', transition: 'width 1s ease-in-out' }}></div>
+              <div style={{ width: `${overallProgress}%`, height: '100%', background: 'var(--accent-primary)', transition: 'width 1s ease-in-out' }}></div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--text-tertiary)' }}>
               <span>Q-Start</span>

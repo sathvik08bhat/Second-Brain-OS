@@ -31,7 +31,7 @@ export default function ProductRoadmap() {
     switch (status) {
       case 'Shipped': return <CheckCircle2 size={14} color="#10b981" />;
       case 'In Progress': return <Clock size={14} color="#f59e0b" />;
-      default: return <Clock size={14} color="#8b5cf6" />;
+      default: return <Clock size={14} color="var(--accent-primary)" />;
     }
   };
 
@@ -77,7 +77,7 @@ export default function ProductRoadmap() {
                   </div>
                 ) : (
                   epicsInQuarter.map(epic => (
-                    <div key={epic.id} className="glass-card" style={{ padding: '1.25rem', borderTop: `3px solid ${epic.status === 'Shipped' ? '#10b981' : epic.status === 'In Progress' ? '#f59e0b' : '#8b5cf6'}` }}>
+                    <div key={epic.id} className="glass-card" style={{ padding: '1.25rem', borderTop: `3px solid ${epic.status === 'Shipped' ? '#10b981' : epic.status === 'In Progress' ? '#f59e0b' : 'var(--accent-primary)'}` }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
                         <h4 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0, lineHeight: 1.3 }}>{epic.title}</h4>
                         <button onClick={() => deleteGenericItem('productRoadmap', epic.id)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0 }}>×</button>

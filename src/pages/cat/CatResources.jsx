@@ -15,7 +15,7 @@ export default function CatResources() {
   const resetForm = () => { setForm({ title: '', type: 'book', link: '', status: 'todo' }); setEditId(null); setShowModal(false); };
   const startEdit = (r) => { setForm({ title: r.title, type: r.type, link: r.link || '', status: r.status }); setEditId(r.id); setShowModal(true); };
 
-  const typeColors = { book: '#8b5cf6', course: '#06b6d4', youtube: '#ef4444', website: '#10b981' };
+  const typeColors = { book: 'var(--accent-primary)', course: '#06b6d4', youtube: '#ef4444', website: '#10b981' };
   const statusColors = { todo: 'badge-red', inProgress: 'badge-yellow', done: 'badge-green' };
 
   return (

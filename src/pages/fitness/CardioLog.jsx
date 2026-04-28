@@ -16,7 +16,7 @@ export default function CardioLog() {
   const resetForm = () => { setForm({ date: new Date().toISOString().split('T')[0], type: 'running', distance: '', duration: '', calories: '' }); setEditId(null); setShowModal(false); };
   const startEdit = (c) => { setForm({ date: c.date, type: c.type, distance: c.distance, duration: c.duration, calories: c.calories || '' }); setEditId(c.id); setShowModal(true); };
 
-  const typeColors = { running: '#ef4444', walking: '#10b981', cycling: '#f59e0b', swimming: '#3b82f6', sports: '#8b5cf6' };
+  const typeColors = { running: '#ef4444', walking: '#10b981', cycling: '#f59e0b', swimming: '#3b82f6', sports: 'var(--accent-primary)' };
 
   return (
     <PageWrapper>

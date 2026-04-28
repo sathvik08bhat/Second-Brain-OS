@@ -38,7 +38,7 @@ const timeDistributionData = [
 const colors = {
   QA: '#f59e0b',
   DILR: '#3b82f6',
-  VARC: '#8b5cf6',
+  VARC: 'var(--accent-primary)',
   correct: '#10b981',
   incorrect: '#ef4444',
   unattempted: '#6b7280'
@@ -148,9 +148,9 @@ export default function CatHome() {
               <ResponsiveContainer width="100%" height={200}>
                 <RadarChart cx="50%" cy="50%" outerRadius="70%" data={mockBalanceData}>
                   <PolarGrid stroke="rgba(255,255,255,0.1)" />
-                  <PolarAngleAxis dataKey="section" tick={{ fill: '#8b5cf6', fontSize: 11, fontWeight: 700 }} />
+                  <PolarAngleAxis dataKey="section" tick={{ fill: 'var(--accent-primary)', fontSize: 11, fontWeight: 700 }} />
                   <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                  <Radar name="Student" dataKey="score" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.4} />
+                  <Radar name="Student" dataKey="score" stroke="var(--accent-primary)" fill="var(--accent-primary)" fillOpacity={0.4} />
                   <RechartsTooltip />
                 </RadarChart>
               </ResponsiveContainer>

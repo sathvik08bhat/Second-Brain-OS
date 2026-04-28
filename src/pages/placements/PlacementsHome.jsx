@@ -10,7 +10,7 @@ export default function PlacementsHome() {
   const avgSkill = skills.length ? Math.round(skills.reduce((s, sk) => s + (sk.proficiency || 0), 0) / skills.length) : 0;
 
   const subPages = [
-    { path: '/placements/skills', icon: Target, title: 'Skills', desc: 'Tech stack proficiency', color: '#8b5cf6' },
+    { path: '/placements/skills', icon: Target, title: 'Skills', desc: 'Tech stack proficiency', color: 'var(--accent-primary)' },
     { path: '/placements/companies', icon: Building, title: 'Companies Database', desc: 'Target companies and applications', color: '#f59e0b' },
   ];
 
@@ -22,7 +22,7 @@ export default function PlacementsHome() {
       </div>
 
       <div className="grid-2" style={{ marginBottom: 'var(--space-xl)' }}>
-        <StatsCard icon={Target} label="Skills" value={skills.length} subtitle={`${avgSkill}% avg proficiency`} color="#8b5cf6" delay={0.1} />
+        <StatsCard icon={Target} label="Skills" value={skills.length} subtitle={`${avgSkill}% avg proficiency`} color="var(--accent-primary)" delay={0.1} />
         <StatsCard icon={Building} label="Target Companies" value={companies.length} subtitle="Watchlist" color="#f59e0b" delay={0.2} />
       </div>
 

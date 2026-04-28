@@ -15,7 +15,7 @@ export default function PlacementSkills() {
   const resetForm = () => { setForm({ name: '', category: 'framework', proficiency: 0, notes: '' }); setEditId(null); setShowModal(false); };
   const startEdit = (s) => { setForm({ name: s.name, category: s.category || 'framework', proficiency: s.proficiency, notes: s.notes || '' }); setEditId(s.id); setShowModal(true); };
 
-  const categoryColors = { language: '#3b82f6', framework: '#8b5cf6', tool: '#f59e0b', concept: '#10b981' };
+  const categoryColors = { language: '#3b82f6', framework: 'var(--accent-primary)', tool: '#f59e0b', concept: '#10b981' };
 
   return (
     <PageWrapper>

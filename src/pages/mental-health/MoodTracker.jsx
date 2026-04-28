@@ -12,7 +12,7 @@ const MOODS = [
   { emoji: '😐', label: 'Okay', value: 'okay', color: '#f59e0b' },
   { emoji: '😔', label: 'Low', value: 'low', color: '#f97316' },
   { emoji: '😢', label: 'Bad', value: 'bad', color: '#ef4444' },
-  { emoji: '😰', label: 'Anxious', value: 'anxious', color: '#8b5cf6' },
+  { emoji: '😰', label: 'Anxious', value: 'anxious', color: 'var(--accent-primary)' },
   { emoji: '😤', label: 'Stressed', value: 'stressed', color: '#ec4899' },
   { emoji: '😴', label: 'Tired', value: 'tired', color: '#6366f1' },
 ];

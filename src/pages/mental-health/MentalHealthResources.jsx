@@ -12,7 +12,7 @@ export default function MentalHealthResources() {
   };
 
   const typeColors = {
-    technique: '#8b5cf6',
+    technique: 'var(--accent-primary)',
     practice: '#10b981',
     strategy: '#f59e0b',
     guide: '#3b82f6',
@@ -60,10 +60,10 @@ export default function MentalHealthResources() {
                 <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} transition={{ duration: 0.3 }} style={{ padding: '1rem 1.5rem' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                     {resources.map((res, j) => (
-                      <div key={j} style={{ padding: '1rem', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-primary)', borderLeft: `4px solid ${typeColors[res.type] || '#8b5cf6'}` }}>
+                      <div key={j} style={{ padding: '1rem', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-primary)', borderLeft: `4px solid ${typeColors[res.type] || 'var(--accent-primary)'}` }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
                           <h4 style={{ fontWeight: 700, fontSize: 'var(--font-sm)', color: 'var(--text-primary)' }}>{res.title}</h4>
-                          <span className="badge" style={{ background: `${typeColors[res.type] || '#8b5cf6'}15`, color: typeColors[res.type] || '#8b5cf6', fontSize: '9px' }}>{res.type}</span>
+                          <span className="badge" style={{ background: `${typeColors[res.type] || 'var(--accent-primary)'}15`, color: typeColors[res.type] || 'var(--accent-primary)', fontSize: '9px' }}>{res.type}</span>
                         </div>
                         <p style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{res.description}</p>
                         {res.url && (

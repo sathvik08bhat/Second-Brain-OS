@@ -11,7 +11,7 @@ export default function PersonalHome() {
   const pendingGoals = goals.filter(g => g.status !== 'completed').length;
 
   const subPages = [
-    { path: '/personal/journal', icon: BookOpen, title: 'Daily Journal', desc: 'Reflections and thoughts', color: '#8b5cf6' },
+    { path: '/personal/journal', icon: BookOpen, title: 'Daily Journal', desc: 'Reflections and thoughts', color: 'var(--accent-primary)' },
     { path: '/personal/habits', icon: CheckSquare, title: 'Habit Tracker', desc: 'Build consistency', color: '#10b981' },
     { path: '/personal/goals', icon: Target, title: 'Life Goals', desc: 'Long-term aspirations', color: '#f59e0b' },
   ];
@@ -24,7 +24,7 @@ export default function PersonalHome() {
       </div>
 
       <div className="grid-3" style={{ marginBottom: 'var(--space-xl)' }}>
-        <StatsCard icon={BookOpen} label="Journal Entries" value={journalEntries.length} subtitle="Total reflections" color="#8b5cf6" />
+        <StatsCard icon={BookOpen} label="Journal Entries" value={journalEntries.length} subtitle="Total reflections" color="var(--accent-primary)" />
         <StatsCard icon={CheckSquare} label="Tracked Habits" value={activeHabits} subtitle="Daily consistency" color="#10b981" delay={0.1} />
         <StatsCard icon={Target} label="Active Goals" value={pendingGoals} subtitle={`Out of ${goals.length} total`} color="#f59e0b" delay={0.2} />
       </div>

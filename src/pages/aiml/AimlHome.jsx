@@ -6,7 +6,7 @@ import StatsCard from '../../components/shared/StatsCard';
 import { useAimlStore } from '../../store/aimlStore';
 
 const subPages = [
-  { path: '/aiml/roadmap', icon: Layers, title: 'Learning Roadmap', desc: 'Topic-by-topic mastery tracker', color: '#8b5cf6' },
+  { path: '/aiml/roadmap', icon: Layers, title: 'Learning Roadmap', desc: 'Topic-by-topic mastery tracker', color: 'var(--accent-primary)' },
   { path: '/aiml/courses', icon: BookOpen, title: 'Courses', desc: 'Online courses & certifications', color: '#3b82f6' },
   { path: '/aiml/projects', icon: FlaskConical, title: 'Projects', desc: 'Hands-on ML/AI projects', color: '#f59e0b' },
   { path: '/aiml/papers', icon: FileText, title: 'Research Papers', desc: 'Papers read & notes', color: '#10b981' },
@@ -29,7 +29,7 @@ export default function AimlHome() {
 
       {/* Stats */}
       <div className="grid-4" style={{ marginBottom: 'var(--space-xl)' }}>
-        <StatsCard icon={TrendingUp} label="Roadmap Progress" value={`${progress.progressPercent}%`} subtitle={`${progress.mastered} topics mastered`} color="#8b5cf6" />
+        <StatsCard icon={TrendingUp} label="Roadmap Progress" value={`${progress.progressPercent}%`} subtitle={`${progress.mastered} topics mastered`} color="var(--accent-primary)" />
         <StatsCard icon={BookOpen} label="Courses" value={completedCourses} subtitle={`of ${courses.length} total`} color="#3b82f6" delay={0.1} />
         <StatsCard icon={FlaskConical} label="Active Projects" value={activeProjects} subtitle={`${projects.length} total`} color="#f59e0b" delay={0.2} />
         <StatsCard icon={FileText} label="Papers Read" value={papersRead} subtitle={`of ${papers.length} saved`} color="#10b981" delay={0.3} />
@@ -61,7 +61,7 @@ export default function AimlHome() {
         <div className="progress-bar-container" style={{ height: 10 }}>
           <motion.div
             className="progress-bar-fill"
-            style={{ background: 'linear-gradient(90deg, #10b981, #3b82f6, #8b5cf6)' }}
+            style={{ background: 'linear-gradient(90deg, #10b981, #3b82f6, var(--accent-primary))' }}
             initial={{ width: 0 }}
             animate={{ width: `${progress.progressPercent}%` }}
             transition={{ duration: 1.5, ease: 'easeOut' }}

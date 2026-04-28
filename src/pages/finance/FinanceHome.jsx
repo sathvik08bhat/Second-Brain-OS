@@ -8,7 +8,7 @@ import Modal from '../../components/shared/Modal';
 import { useFinanceStore } from '../../store/financeStore';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 
-const CHART_COLORS = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#3b82f6', '#f97316', '#22d3ee', '#a855f7'];
+const CHART_COLORS = ['var(--accent-primary)', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#3b82f6', '#f97316', '#22d3ee', '#a855f7'];
 
 export default function FinanceHome() {
   const { accounts, transactions, getTotalBalance, getCategoryBreakdown, getMonthlyTrend, savingsGoals, addTransaction, SPENDING_CATEGORIES, INCOME_CATEGORIES } = useFinanceStore();
@@ -32,7 +32,7 @@ export default function FinanceHome() {
   const subPages = [
     { path: '/finance/accounts', icon: CreditCard, title: 'Accounts', desc: 'Manage bank, cash, UPI accounts', color: '#3b82f6' },
     { path: '/finance/transactions', icon: Receipt, title: 'Transactions', desc: 'Statement & transaction history', color: '#10b981' },
-    { path: '/finance/analytics', icon: BarChart3, title: 'Analytics', desc: 'Spending graphs & budget tracking', color: '#8b5cf6' },
+    { path: '/finance/analytics', icon: BarChart3, title: 'Analytics', desc: 'Spending graphs & budget tracking', color: 'var(--accent-primary)' },
     { path: '/finance/savings', icon: Target, title: 'Savings Goals', desc: 'Track savings targets & EMIs', color: '#f59e0b' },
   ];
 
@@ -48,7 +48,7 @@ export default function FinanceHome() {
 
       {/* Stats */}
       <div className="grid-4" style={{ marginBottom: 'var(--space-xl)' }}>
-        <StatsCard icon={Wallet} label="Total Balance" value={`₹${totalBalance.toLocaleString('en-IN')}`} subtitle="All accounts" color="#8b5cf6" />
+        <StatsCard icon={Wallet} label="Total Balance" value={`₹${totalBalance.toLocaleString('en-IN')}`} subtitle="All accounts" color="var(--accent-primary)" />
         <StatsCard icon={TrendingUp} label="Total Income" value={`₹${totalIncome.toLocaleString('en-IN')}`} subtitle="All time" color="#10b981" delay={0.1} />
         <StatsCard icon={TrendingDown} label="Total Expenses" value={`₹${totalExpense.toLocaleString('en-IN')}`} subtitle="All time" color="#ef4444" delay={0.2} />
         <StatsCard icon={PiggyBank} label="Savings Goals" value={savingsGoals.length} subtitle="Active targets" color="#f59e0b" delay={0.3} />

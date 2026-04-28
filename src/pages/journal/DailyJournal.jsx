@@ -16,8 +16,8 @@ import {
   Calendar as CalendarIcon, History, ChevronLeft, ChevronRight,
   Clock, Save
 } from 'lucide-react';
-import PageWrapper from '../components/layout/PageWrapper';
-import { useJournalStore } from '../store/journalStore';
+import PageWrapper from '../../components/layout/PageWrapper';
+import { useJournalStore } from '../../store/journalStore';
 import './DailyJournal.css';
 
 // Initialize lowlight

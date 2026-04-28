@@ -16,7 +16,7 @@ export default function Goals() {
   const resetForm = () => { setForm({ title: '', description: '', deadline: '', status: 'not-started', category: 'career' }); setEditId(null); setShowModal(false); };
   const startEdit = (g) => { setForm({ title: g.title, description: g.description || '', deadline: g.deadline || '', status: g.status, category: g.category }); setEditId(g.id); setShowModal(true); };
 
-  const categoryColors = { career: '#3b82f6', health: '#10b981', financial: '#f59e0b', personal: '#8b5cf6' };
+  const categoryColors = { career: '#3b82f6', health: '#10b981', financial: '#f59e0b', personal: 'var(--accent-primary)' };
   const statusColors = { 'not-started': 'badge-red', 'in-progress': 'badge-yellow', 'completed': 'badge-green', 'paused': 'badge-purple' };
 
   return (

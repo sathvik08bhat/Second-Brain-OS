@@ -68,7 +68,7 @@ export default function WellnessCheckin() {
                 <XAxis dataKey="date" tick={{ fill: '#6b6b80', fontSize: 10 }} />
                 <YAxis domain={[0, 10]} tick={{ fill: '#6b6b80', fontSize: 11 }} />
                 <Tooltip contentStyle={{ background: 'var(--bg-card)', border: '2px solid var(--border-primary)', borderRadius: 8, color: 'var(--text-primary)' }} />
-                <Line type="monotone" dataKey="value" stroke={selectedInfo?.color || '#8b5cf6'} strokeWidth={3} dot={{ fill: selectedInfo?.color || '#8b5cf6', r: 4 }} />
+                <Line type="monotone" dataKey="value" stroke={selectedInfo?.color || 'var(--accent-primary)'} strokeWidth={3} dot={{ fill: selectedInfo?.color || 'var(--accent-primary)', r: 4 }} />
               </LineChart>
             </ResponsiveContainer>
           ) : <div className="empty-state" style={{ padding: '1.5rem' }}><p>Need 2+ check-ins to show trends</p></div>}

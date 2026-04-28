@@ -49,7 +49,7 @@ export default function LeadershipHome() {
 
       {/* Stats */}
       <div className="grid-4" style={{ marginBottom: 'var(--space-xl)' }}>
-        <StatsCard icon={Shield} label="Overall Score" value={overallScore || '—'} subtitle="Latest assessment" color="#8b5cf6" />
+        <StatsCard icon={Shield} label="Overall Score" value={overallScore || '—'} subtitle="Latest assessment" color="var(--accent-primary)" />
         <StatsCard icon={Activity} label="Assessments" value={assessments.length} subtitle="Self-evaluations" color="#06b6d4" delay={0.1} />
         <StatsCard icon={Trophy} label="Activities" value={activities.length} subtitle="Practice logged" color="#f59e0b" delay={0.2} />
         <StatsCard icon={Shield} label="Active Goals" value={goals.filter(g => g.status === 'active').length} subtitle="In progress" color="#10b981" delay={0.3} />

@@ -1,8 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   BarChart3, LineChart as LineChartIcon, PieChart as PieChartIcon, 
-  GripHorizontal, RefreshCw, Calendar, TrendingUp, Target
+  GripHorizontal, RotateCcw, Calendar, TrendingUp, Target
 } from 'lucide-react';
 import { ResponsiveGridLayout } from 'react-grid-layout';
 import { 
@@ -17,17 +17,15 @@ import 'react-resizable/css/styles.css';
 
 // ResponsiveGridLayout imported directly from react-grid-layout v2
 
-const DEFAULT_LAYOUTS = {
-  lg: [
-    { i: 'velocity', x: 0, y: 0, w: 8, h: 6, minW: 4 },
-    { i: 'distribution', x: 8, y: 0, w: 4, h: 6, minW: 2 },
-    { i: 'burndown', x: 0, y: 6, w: 12, h: 5, minW: 6 },
-  ]
-};
+const DEFAULT_LAYOUT = [
+  { i: 'velocity', x: 0, y: 0, w: 12, h: 6, minW: 6, minH: 4 },
+  { i: 'distribution', x: 0, y: 6, w: 4, h: 6, minW: 3, minH: 4 },
+  { i: 'burndown', x: 4, y: 6, w: 8, h: 6, minW: 4, minH: 4 }
+];
 
 const CATEGORY_COLORS = {
   academics: '#3b82f6',
-  dsa: '#8b5cf6',
+  dsa: 'var(--accent-primary)',
   startup: '#f59e0b',
   personal: '#10b981',
   finance: '#ec4899',
@@ -39,7 +37,24 @@ const CATEGORY_COLORS = {
 
 export default function TaskStatsPage() {
   const { tasks } = useTaskStore();
-  const [layouts, setLayouts] = useState(DEFAULT_LAYOUTS);
+  const [layout, setLayout] = useState([]);
+
+  useEffect(() => {
+    // Initial load from localStorage
+    const saved = localStorage.getItem('tasks_stats_layout');
+    if (saved) setLayout(JSON.parse(saved));
+    else setLayout(DEFAULT_LAYOUT);
+  }, []);
+
+  const handleLayoutChange = (newLayout) => {
+    setLayout(newLayout);
+    localStorage.setItem('tasks_stats_layout', JSON.stringify(newLayout));
+  };
+
+  const resetLayout = () => {
+    setLayout(DEFAULT_LAYOUT);
+    localStorage.removeItem('tasks_stats_layout');
+  };
 
   // ─── Data Processing ───────────────────────────────────────────────────────
 
@@ -100,39 +115,45 @@ export default function TaskStatsPage() {
           <p>Deep dive into your productivity velocity and balance</p>
         </div>
         <div className="header-actions">
-          <button className="btn-secondary" onClick={() => setLayouts(DEFAULT_LAYOUTS)}>
-            <RefreshCw size={14} /> Reset Layout
+          <button 
+            onClick={resetLayout} 
+            className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 bg-transparent border-none cursor-pointer"
+          >
+            <RotateCcw className="w-3 h-3"/> Reset Layout
           </button>
         </div>
       </div>
 
       <ResponsiveGridLayout
         className="layout"
-        layouts={layouts}
+        layouts={{ lg: layout, md: layout, sm: layout, xs: layout, xxs: layout }}
         breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
         cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
         rowHeight={60}
         draggableHandle=".drag-handle"
-        onLayoutChange={(c, all) => setLayouts(all)}
+        isResizable={true}
+        resizeHandles={['se', 'e', 's']}
+        onLayoutChange={handleLayoutChange}
       >
         {/* Widget 1: Velocity */}
-        <div key="velocity">
-          <div className="glass-card h-full flex flex-col overflow-hidden p-4">
-            <div className="drag-handle absolute top-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <GripHorizontal size={16} className="text-muted-foreground/30" />
+        <div key="velocity" data-grid={{ x: 0, y: 0, w: 12, h: 6, minW: 6, minH: 4 }}>
+          <div className="bg-card border border-border/50 rounded-2xl shadow-sm flex flex-col w-full h-full overflow-hidden hover:shadow-md transition-shadow group">
+            <div className="drag-handle h-6 w-full cursor-grab active:cursor-grabbing flex items-center justify-center bg-transparent group-hover:bg-muted/30 transition-colors shrink-0">
+              <GripHorizontal className="w-4 h-4 text-muted-foreground/30 group-hover:text-muted-foreground transition-colors" />
             </div>
+            <div className="px-6 pb-6 flex-1 flex flex-col overflow-y-auto">
             
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2 rounded-lg bg-primary/10 text-primary">
                 <TrendingUp size={18} />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-foreground">30-Day Velocity</h3>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Completion Rate</p>
+                <h3 className="text-[10px] font-black tracking-widest uppercase text-muted-foreground mb-1">30-Day Velocity</h3>
+                <p className="text-xl md:text-2xl font-bold tracking-tight text-foreground">Completion Rate</p>
               </div>
             </div>
 
-            <div className="flex-1 min-h-0">
+            <div className="w-full h-[250px] min-h-[200px] flex-1 mt-4">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={velocityData}>
                   <defs>
@@ -174,25 +195,27 @@ export default function TaskStatsPage() {
             </div>
           </div>
         </div>
+      </div>
 
         {/* Widget 2: Distribution */}
-        <div key="distribution">
-          <div className="glass-card h-full flex flex-col overflow-hidden p-4">
-             <div className="drag-handle absolute top-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <GripHorizontal size={16} className="text-muted-foreground/30" />
+        <div key="distribution" data-grid={{ x: 0, y: 6, w: 4, h: 6, minW: 3, minH: 4 }}>
+          <div className="bg-card border border-border/50 rounded-2xl shadow-sm flex flex-col w-full h-full overflow-hidden hover:shadow-md transition-shadow group">
+             <div className="drag-handle h-6 w-full cursor-grab active:cursor-grabbing flex items-center justify-center bg-transparent group-hover:bg-muted/30 transition-colors shrink-0">
+              <GripHorizontal className="w-4 h-4 text-muted-foreground/30 group-hover:text-muted-foreground transition-colors" />
             </div>
+            <div className="px-6 pb-6 flex-1 flex flex-col overflow-y-auto">
 
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500">
                 <PieChartIcon size={18} />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-foreground">Distribution</h3>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">By Category</p>
+                <h3 className="text-[10px] font-black tracking-widest uppercase text-muted-foreground mb-1">Distribution</h3>
+                <p className="text-xl md:text-2xl font-bold tracking-tight text-foreground">By Category</p>
               </div>
             </div>
 
-            <div className="flex-1 min-h-0">
+            <div className="w-full h-[250px] min-h-[200px] flex-1 mt-4">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -221,13 +244,15 @@ export default function TaskStatsPage() {
             </div>
           </div>
         </div>
+      </div>
 
         {/* Widget 3: Burndown */}
-        <div key="burndown">
-          <div className="glass-card h-full flex flex-col overflow-hidden p-6">
-            <div className="drag-handle absolute top-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <GripHorizontal size={16} className="text-muted-foreground/30" />
+        <div key="burndown" data-grid={{ x: 4, y: 6, w: 8, h: 6, minW: 4, minH: 4 }}>
+          <div className="bg-card border border-border/50 rounded-2xl shadow-sm flex flex-col w-full h-full overflow-hidden hover:shadow-md transition-shadow group">
+            <div className="drag-handle h-6 w-full cursor-grab active:cursor-grabbing flex items-center justify-center bg-transparent group-hover:bg-muted/30 transition-colors shrink-0">
+              <GripHorizontal className="w-4 h-4 text-muted-foreground/30 group-hover:text-muted-foreground transition-colors" />
             </div>
+            <div className="px-6 pb-6 flex-1 flex flex-col overflow-y-auto">
 
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
@@ -235,13 +260,13 @@ export default function TaskStatsPage() {
                   <BarChart3 size={18} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-foreground">Created vs Completed</h3>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Weekly Burndown</p>
+                  <h3 className="text-[10px] font-black tracking-widest uppercase text-muted-foreground mb-1">Created vs Completed</h3>
+                  <p className="text-xl md:text-2xl font-bold tracking-tight text-foreground">Weekly Burndown</p>
                 </div>
               </div>
             </div>
 
-            <div className="flex-1 min-h-0">
+            <div className="w-full h-[250px] min-h-[200px] flex-1 mt-4">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={burndownData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
@@ -272,6 +297,7 @@ export default function TaskStatsPage() {
             </div>
           </div>
         </div>
+      </div>
       </ResponsiveGridLayout>
     </PageWrapper>
   );

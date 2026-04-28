@@ -5,7 +5,7 @@ import PageWrapper from '../../components/layout/PageWrapper';
 import { useFinanceStore } from '../../store/financeStore';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line, Legend } from 'recharts';
 
-const COLORS = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#3b82f6', '#f97316', '#22d3ee', '#a855f7'];
+const COLORS = ['var(--accent-primary)', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#3b82f6', '#f97316', '#22d3ee', '#a855f7'];
 
 export default function FinanceAnalytics() {
   const { getCategoryBreakdown, getMonthlyTrend, getBudgetStatus, setBudget, removeBudget, SPENDING_CATEGORIES } = useFinanceStore();
@@ -51,7 +51,7 @@ export default function FinanceAnalytics() {
               <Legend />
               <Line type="monotone" dataKey="income" stroke="#10b981" strokeWidth={3} dot={{ r: 4 }} name="Income" />
               <Line type="monotone" dataKey="expense" stroke="#ef4444" strokeWidth={3} dot={{ r: 4 }} name="Expense" />
-              <Line type="monotone" dataKey="net" stroke="#8b5cf6" strokeWidth={2} strokeDasharray="5 5" dot={{ r: 3 }} name="Net" />
+              <Line type="monotone" dataKey="net" stroke="var(--accent-primary)" strokeWidth={2} strokeDasharray="5 5" dot={{ r: 3 }} name="Net" />
             </LineChart>
           </ResponsiveContainer>
         ) : (

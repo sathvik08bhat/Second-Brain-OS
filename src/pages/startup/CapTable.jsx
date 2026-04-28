@@ -6,7 +6,7 @@ import PageWrapper from '../../components/layout/PageWrapper';
 import Modal from '../../components/shared/Modal';
 import { useStartupStore } from '../../store/startupStore';
 
-const COLORS = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#14b8a6', '#f43f5e'];
+const COLORS = ['var(--accent-primary)', '#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#14b8a6', '#f43f5e'];
 
 export default function CapTable() {
   const { capTable, addGenericItem, deleteGenericItem } = useStartupStore();
@@ -67,7 +67,7 @@ export default function CapTable() {
             </div>
           </div>
 
-          <div className="glass-card" style={{ padding: '1.5rem', borderLeft: '4px solid #8b5cf6' }}>
+          <div className="glass-card" style={{ padding: '1.5rem', borderLeft: '4px solid var(--accent-primary)' }}>
             <div style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Users size={16} /> Shareholders on Record
             </div>

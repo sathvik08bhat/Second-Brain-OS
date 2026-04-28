@@ -1,9 +1,7 @@
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: var(--bg-modal);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: var(--bg-modal-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -12,8 +10,8 @@
 }
 
 .modal-container {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-secondary);
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-xl);
   max-height: 85vh;
@@ -33,21 +31,44 @@
   justify-content: space-between;
   padding: 1.2rem 1.5rem;
   border-bottom: 1px solid var(--border-primary);
+  background: var(--bg-secondary);
 }
 
 .modal-title {
   font-size: var(--font-lg);
-  font-weight: 700;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modal-close {
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.modal-close:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
 .modal-body {
   padding: 1.5rem;
   overflow-y: auto;
+  background: var(--bg-primary);
 }
 
 .modal-actions {
   display: flex;
   justify-content: flex-end;
   gap: var(--space-sm);
-  margin-top: var(--space-lg);
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border-primary);
+  background: var(--bg-secondary);
 }

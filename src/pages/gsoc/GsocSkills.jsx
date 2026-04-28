@@ -15,7 +15,7 @@ export default function GsocSkills() {
   const resetForm = () => { setForm({ name: '', category: 'language', level: 'beginner', progress: 0, notes: '' }); setEditId(null); setShowModal(false); };
   const startEdit = (s) => { setForm({ name: s.name, category: s.category || 'language', level: s.level, progress: s.progress, notes: s.notes || '' }); setEditId(s.id); setShowModal(true); };
 
-  const levelColors = { beginner: '#ef4444', intermediate: '#f59e0b', advanced: '#10b981', expert: '#8b5cf6' };
+  const levelColors = { beginner: '#ef4444', intermediate: '#f59e0b', advanced: '#10b981', expert: 'var(--accent-primary)' };
 
   return (
     <PageWrapper>

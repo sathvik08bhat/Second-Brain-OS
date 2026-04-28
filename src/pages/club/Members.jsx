@@ -15,7 +15,7 @@ export default function Members() {
   const resetForm = () => { setForm({ name: '', role: 'Member', team: 'Technical', contact: '', status: 'active' }); setEditId(null); setShowModal(false); };
   const startEdit = (m) => { setForm({ name: m.name, role: m.role || 'Member', team: m.team || 'None', contact: m.contact || '', status: m.status }); setEditId(m.id); setShowModal(true); };
 
-  const teamColors = { Technical: '#3b82f6', Design: '#ec4899', Management: '#f59e0b', PR: '#10b981', Overall: '#8b5cf6' };
+  const teamColors = { Technical: '#3b82f6', Design: '#ec4899', Management: '#f59e0b', PR: '#10b981', Overall: 'var(--accent-primary)' };
 
   return (
     <PageWrapper>

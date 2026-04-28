@@ -27,7 +27,7 @@ export const useTaskStore = create(
           googleCalendarEventId: null,
           googleTaskId: null,
           tags: [],
-          status: 'todo', // todo, in-progress, done
+          status: 'not_started', // not_started, in_progress, done
           ...task
         }]
       })),
@@ -44,7 +44,7 @@ export const useTaskStore = create(
         tasks: state.tasks.map(t => t.id === id ? {
           ...t,
           completed: !t.completed,
-          status: !t.completed ? 'done' : 'todo'
+          status: !t.completed ? 'done' : 'not_started'
         } : t)
       })),
 

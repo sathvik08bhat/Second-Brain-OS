@@ -16,7 +16,7 @@ export default function Workouts() {
   const resetForm = () => { setForm({ date: new Date().toISOString().split('T')[0], type: 'push', duration: '', exercises: '', notes: '' }); setEditId(null); setShowModal(false); };
   const startEdit = (w) => { setForm({ date: w.date, type: w.type, duration: w.duration, exercises: w.exercises || '', notes: w.notes || '' }); setEditId(w.id); setShowModal(true); };
 
-  const typeColors = { push: '#ef4444', pull: '#3b82f6', legs: '#10b981', fullbody: '#f59e0b', back: '#8b5cf6', chest: '#ec4899' };
+  const typeColors = { push: '#ef4444', pull: '#3b82f6', legs: '#10b981', fullbody: '#f59e0b', back: 'var(--accent-primary)', chest: '#ec4899' };
 
   return (
     <PageWrapper>

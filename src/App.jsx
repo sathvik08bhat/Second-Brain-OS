@@ -11,15 +11,26 @@ import { useGlobalStore } from './store/globalStore';
 import { useGoogleStore } from './store/googleStore';
 import { useSyncStore, initAutoSync } from './store/syncStore';
 
-// Pages
+// Overview
 import Dashboard from './pages/Dashboard';
-import DailyJournal from './pages/DailyJournal';
-import FocusMode from './pages/focus/FocusMode';
 import NotesPage from './pages/notes/NotesPage';
 
 // Tasks
 import TasksPage from './pages/tasks/TasksPage';
 import TaskStatsPage from './pages/tasks/TaskStatsPage';
+
+// Focus
+import FocusMode from './pages/focus/FocusMode';
+import FocusStatsPage from './pages/focus/FocusStatsPage';
+
+// Journal
+import DailyJournal from './pages/journal/DailyJournal';
+import JournalInsightsPage from './pages/journal/JournalInsightsPage';
+
+// Calendar
+import GoogleIntegration from './pages/settings/GoogleIntegration';
+import CalendarPage from './pages/settings/CalendarPage';
+import TimeAnalyticsPage from './pages/calendar/TimeAnalyticsPage';
 
 // Academics
 import AcademicsHome from './pages/academics/AcademicsHome';
@@ -29,6 +40,7 @@ import ExamTracker from './pages/academics/ExamTracker';
 import AssignmentTracker from './pages/academics/AssignmentTracker';
 import AttendanceTracker from './pages/academics/AttendanceTracker';
 import Resources from './pages/academics/Resources';
+import AssessmentsDashboard from './pages/academics/AssessmentsDashboard';
 
 // AI/ML
 import AimlHome from './pages/aiml/AimlHome';
@@ -122,10 +134,6 @@ import TravelHome from './pages/travel/TravelHome';
 import Planner from './pages/travel/Planner';
 import TravelHistory from './pages/travel/TravelHistory';
 
-// Settings
-import GoogleIntegration from './pages/settings/GoogleIntegration';
-import CalendarPage from './pages/settings/CalendarPage';
-
 // Vault
 import VaultHome from './pages/vault/VaultHome';
 
@@ -211,11 +219,14 @@ function AppContent() {
             <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/focus" element={<FocusMode />} />
+            <Route path="/focus/stats" element={<FocusStatsPage />} />
             <Route path="/notes" element={<NotesPage />} />
-            <Route path="/inbox" element={<DailyJournal />} />
+            <Route path="/journal" element={<DailyJournal />} />
+            <Route path="/journal/stats" element={<JournalInsightsPage />} />
              <Route path="/tasks" element={<TasksPage />} />
              <Route path="/tasks/stats" element={<TaskStatsPage />} />
             <Route path="/calendar" element={<CalendarPage />} />
+            <Route path="/calendar/stats" element={<TimeAnalyticsPage />} />
             <Route path="/google-sync" element={<GoogleIntegration />} />
 
             {/* Academics */}
@@ -224,6 +235,7 @@ function AppContent() {
             <Route path="/academics/cgpa" element={<CGPATracker />} />
             <Route path="/academics/exams" element={<ExamTracker />} />
             <Route path="/academics/assignments" element={<AssignmentTracker />} />
+            <Route path="/academics/assessments" element={<AssessmentsDashboard />} />
             <Route path="/academics/attendance" element={<AttendanceTracker />} />
             <Route path="/academics/resources" element={<Resources />} />
 

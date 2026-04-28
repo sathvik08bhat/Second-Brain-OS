@@ -290,8 +290,9 @@ export default function FocusMode() {
           cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
           rowHeight={60}
           margin={[24, 24]}
-          isResizable={true}
           isDraggable={true}
+          isResizable={true}
+          resizeHandles={['se', 'e', 's']}
           draggableHandle=".drag-handle"
           onLayoutChange={onLayoutChange}
         >

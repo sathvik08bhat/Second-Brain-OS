@@ -16,9 +16,21 @@ export const navSections = [
     title: 'OVERVIEW',
     items: [
       { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
-      { path: '/focus', icon: Target, label: 'Focus Mode' },
+      { 
+        path: '/focus', icon: Target, label: 'Focus Mode',
+        children: [
+          { path: '/focus', label: 'Deep Work' },
+          { path: '/focus/stats', label: 'Focus Stats' },
+        ]
+      },
       { path: '/notes', icon: FileText, label: 'Notes' },
-      { path: '/inbox', icon: Brain, label: 'Daily Journal' },
+      { 
+        path: '/journal', icon: Brain, label: 'Daily Journal',
+        children: [
+          { path: '/journal', label: 'Writing' },
+          { path: '/journal/stats', label: 'Journal Insights' },
+        ]
+      },
       { 
         path: '/tasks', icon: CheckCircle, label: 'Task Tracker',
         children: [
@@ -26,7 +38,13 @@ export const navSections = [
           { path: '/tasks/stats', label: 'Insights & Stats' },
         ]
       },
-      { path: '/calendar', icon: CalendarDays, label: 'Calendar' },
+      { 
+        path: '/calendar', icon: CalendarDays, label: 'Calendar',
+        children: [
+          { path: '/calendar', label: 'Schedule' },
+          { path: '/calendar/stats', label: 'Time Analytics' },
+        ]
+      },
       { path: '/google-sync', icon: Link2, label: 'Google Sync' },
     ]
   },
@@ -304,32 +322,48 @@ export default function Sidebar({ onOpenSettings }) {
 
       {/* User info & Theme Toggle */}
       {!sidebarCollapsed && (
-        <div style={{ padding: '0.85rem 1rem', borderTop: '2px solid var(--border-primary)', background: 'var(--bg-glass)' }}>
+        <div style={{ padding: '0.75rem 1rem', borderTop: '1px solid var(--border-primary)' }}>
           <div className="sidebar-user" style={{ borderTop: 'none', padding: 0, marginBottom: '0.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', flex: 1, gap: '0.65rem' }}>
-              <div className="user-avatar" style={{ border: '2px solid #000', boxShadow: '2px 2px 0px #000', color: '#000', background: 'var(--accent-primary, #fff)', cursor: 'pointer' }} onClick={onOpenSettings} title="Settings & Modules">SB</div>
+            <div style={{ display: 'flex', alignItems: 'center', flex: 1, gap: '0.6rem' }}>
+              <div className="user-avatar" onClick={onOpenSettings} style={{ cursor: 'pointer' }} title="Settings & Modules">SB</div>
               <div className="user-info">
-                <span className="user-name" style={{cursor:'pointer'}} onClick={onOpenSettings}>Sathvik Bhat</span>
+                <span className="user-name" style={{ cursor: 'pointer' }} onClick={onOpenSettings}>Sathvik Bhat</span>
                 <span className="user-college">IIIT Bhubaneswar</span>
               </div>
             </div>
             <button className="theme-toggle-btn" onClick={toggleTheme} title="Toggle Day/Night Mode">
-              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
           </div>
           
-          <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center', marginTop: '0.8rem' }}>
-            {['#E8F396', '#DCDDFF', '#FFCFD2', '#B9FBC0', '#8b5cf6'].map(color => (
+          <div style={{ display: 'flex', gap: '0.35rem', justifyContent: 'center', marginTop: '0.6rem' }}>
+            {[
+              { color: '#0d9488', hover: '#0f766e', label: 'Teal' },
+              { color: '#2563eb', hover: '#1d4ed8', label: 'Blue' },
+              { color: 'var(--accent-primary)', hover: '#6d28d9', label: 'Violet' },
+              { color: '#db2777', hover: '#be185d', label: 'Pink' },
+              { color: '#ea580c', hover: '#c2410c', label: 'Orange' },
+              { color: '#16a34a', hover: '#15803d', label: 'Green' },
+              { color: '#dc2626', hover: '#b91c1c', label: 'Red' },
+            ].map(({ color, hover, label }) => (
               <button
                 key={color}
-                onClick={() => useGlobalStore.getState().setAccentColor(color)}
-                style={{
-                  width: '18px', height: '18px', borderRadius: '50%', background: color, 
-                  border: '1px solid var(--border)', cursor: 'pointer',
-                  transform: 'translate(0, 0)', transition: 'all 0.2s'
+                title={label}
+                onClick={() => {
+                  const store = useGlobalStore.getState();
+                  store.setAccentColor(color);
+                  document.documentElement.style.setProperty('--accent-primary', color);
+                  document.documentElement.style.setProperty('--accent-primary-hover', hover);
+                  document.documentElement.style.setProperty('--accent-primary-muted', `${color}1a`);
                 }}
-                onMouseOver={e => e.currentTarget.style.transform = 'translate(-1px, -1px)'}
-                onMouseOut={e => e.currentTarget.style.transform = 'translate(0, 0)'}
+                style={{
+                  width: '16px', height: '16px', borderRadius: '50%', background: color,
+                  border: '2px solid transparent', cursor: 'pointer',
+                  transition: 'transform 0.15s, border-color 0.15s',
+                  outline: 'none',
+                }}
+                onMouseOver={e => { e.currentTarget.style.transform = 'scale(1.2)'; e.currentTarget.style.borderColor = 'var(--text-muted)'; }}
+                onMouseOut={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.borderColor = 'transparent'; }}
               />
             ))}
           </div>

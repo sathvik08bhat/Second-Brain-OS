@@ -36,7 +36,7 @@ export default function WeightLog() {
               <YAxis domain={[yMin, yMax]} tick={{ fill: '#6b6b80', fontSize: 12 }} />
               <Tooltip contentStyle={{ background: '#13131d', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, color: '#f0f0f5' }} />
               <ReferenceLine y={targetWeight} label={{ position: 'top', value: `Goal (${targetWeight}kg)`, fill: '#10b981', fontSize: 12 }} stroke="#10b981" strokeDasharray="3 3" />
-              <Line type="monotone" dataKey="weight" stroke="#8b5cf6" strokeWidth={3} dot={{ fill: '#8b5cf6', r: 4 }} activeDot={{ r: 6 }} />
+              <Line type="monotone" dataKey="weight" stroke="var(--accent-primary)" strokeWidth={3} dot={{ fill: 'var(--accent-primary)', r: 4 }} activeDot={{ r: 6 }} />
             </LineChart>
           </ResponsiveContainer>
         </motion.div>

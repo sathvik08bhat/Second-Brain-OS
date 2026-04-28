@@ -284,6 +284,8 @@ export default function NotesPage() {
                 rowHeight={40}
                 margin={[20, 20]}
                 draggableHandle=".drag-handle"
+                isResizable={true}
+                resizeHandles={['se', 'e', 's']}
                 onLayoutChange={onLayoutChange}
               >
                 {safeOpenIds.map(id => (
