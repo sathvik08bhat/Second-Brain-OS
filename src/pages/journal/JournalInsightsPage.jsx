@@ -4,15 +4,18 @@ import {
   LineChart as LineChartIcon, BarChart3, 
   GripHorizontal, RotateCcw, BookOpen, Flame, Hash, Smile
 } from 'lucide-react';
-import { ResponsiveGridLayout } from 'react-grid-layout';
+import { Responsive, WidthProvider } from 'react-grid-layout/legacy';
 import { 
   LineChart, Line, BarChart, Bar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 import PageWrapper from '../../components/layout/PageWrapper';
+import { WidgetCard } from '../../components/ui/WidgetCard';
 
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
+
+const ResponsiveGridLayout = WidthProvider(Responsive);
 
 const DEFAULT_LAYOUT = [
   { i: 'streak', x: 0, y: 0, w: 4, h: 4, minW: 3, minH: 3 },
@@ -22,14 +25,17 @@ const DEFAULT_LAYOUT = [
 ];
 
 export default function JournalInsightsPage() {
-  const [layout, setLayout] = useState([]);
-
-  useEffect(() => {
-    // Initial load from localStorage
+  const [layout, setLayout] = useState(() => {
     const saved = localStorage.getItem('journal_stats_layout');
-    if (saved) setLayout(JSON.parse(saved));
-    else setLayout(DEFAULT_LAYOUT);
-  }, []);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return DEFAULT_LAYOUT;
+      }
+    }
+    return DEFAULT_LAYOUT;
+  });
 
   const handleLayoutChange = (newLayout) => {
     setLayout(newLayout);
@@ -96,13 +102,8 @@ export default function JournalInsightsPage() {
         onLayoutChange={handleLayoutChange}
       >
         {/* Widget 1: Consistency Streak */}
-        <div key="streak">
-          <div className="bg-card border border-border/50 rounded-2xl shadow-sm flex flex-col w-full h-full overflow-hidden hover:shadow-md transition-shadow group">
-            <div className="drag-handle absolute top-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
-              <GripHorizontal size={16} className="text-muted-foreground/30" />
-            </div>
-            
-            <div className="flex flex-col items-center justify-center h-full">
+        <WidgetCard key="streak" title="Consistency Streak" icon={Flame}>
+            <div className="flex flex-col items-center justify-center h-full pt-4">
               <div className="p-4 rounded-full bg-orange-500/10 text-orange-500 mb-4 animate-pulse">
                 <Flame size={48} />
               </div>
@@ -114,27 +115,12 @@ export default function JournalInsightsPage() {
                 ))}
               </div>
             </div>
-          </div>
-        </div>
+        </WidgetCard>
 
         {/* Widget 2: Word Count Velocity */}
-        <div key="velocity">
-          <div className="bg-card border border-border/50 rounded-2xl shadow-sm flex flex-col w-full h-full overflow-hidden hover:shadow-md transition-shadow group">
-            <div className="drag-handle absolute top-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
-              <GripHorizontal size={16} className="text-muted-foreground/30" />
-            </div>
-
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500">
-                <LineChartIcon size={18} />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-foreground">Writing Velocity</h3>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Words Per Day</p>
-              </div>
-            </div>
-
-            <div className="w-full h-[250px] min-h-[200px] flex-1 mt-4">
+        <WidgetCard key="velocity" title="Writing Velocity" icon={LineChartIcon}>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-4">Words Per Day</p>
+            <div className="w-full h-[250px] min-h-[200px] flex-1">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={velocityData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
@@ -145,27 +131,12 @@ export default function JournalInsightsPage() {
                 </LineChart>
               </ResponsiveContainer>
             </div>
-          </div>
-        </div>
+        </WidgetCard>
 
         {/* Widget 3: Common Themes */}
-        <div key="themes">
-          <div className="bg-card border border-border/50 rounded-2xl shadow-sm flex flex-col w-full h-full overflow-hidden hover:shadow-md transition-shadow group">
-            <div className="drag-handle absolute top-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
-              <GripHorizontal size={16} className="text-muted-foreground/30" />
-            </div>
-
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 rounded-lg bg-pink-500/10 text-pink-500">
-                <Hash size={18} />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-foreground">Common Themes</h3>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Frequent Keywords</p>
-              </div>
-            </div>
-
-            <div className="w-full h-[250px] min-h-[200px] flex-1 mt-4">
+        <WidgetCard key="themes" title="Common Themes" icon={Hash}>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-4">Frequent Keywords</p>
+            <div className="w-full h-[250px] min-h-[200px] flex-1">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={themesData} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(255,255,255,0.05)" />
@@ -176,27 +147,12 @@ export default function JournalInsightsPage() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-          </div>
-        </div>
+        </WidgetCard>
 
         {/* Widget 4: Mood Tracker */}
-        <div key="mood">
-          <div className="bg-card border border-border/50 rounded-2xl shadow-sm flex flex-col w-full h-full overflow-hidden hover:shadow-md transition-shadow group">
-            <div className="drag-handle absolute top-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
-              <GripHorizontal size={16} className="text-muted-foreground/30" />
-            </div>
-
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-yellow-500/10 text-yellow-500">
-                <Smile size={18} />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-foreground">Sentiment Radar</h3>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Emotional Balance</p>
-              </div>
-            </div>
-
-            <div className="w-full h-[250px] min-h-[200px] flex-1 mt-4">
+        <WidgetCard key="mood" title="Sentiment Radar" icon={Smile}>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-4">Emotional Balance</p>
+            <div className="w-full h-[250px] min-h-[200px] flex-1">
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart cx="50%" cy="50%" outerRadius="80%" data={moodData}>
                   <PolarGrid stroke="rgba(255,255,255,0.1)" />
@@ -206,8 +162,7 @@ export default function JournalInsightsPage() {
                 </RadarChart>
               </ResponsiveContainer>
             </div>
-          </div>
-        </div>
+        </WidgetCard>
       </ResponsiveGridLayout>
     </PageWrapper>
   );

@@ -25,7 +25,6 @@ import { CSS } from '@dnd-kit/utilities';
 
 import PageWrapper from '../../components/layout/PageWrapper';
 import { useNoteStore } from '../../store/noteStore';
-import { useNotesSync } from '../../hooks/useNotesSync';
 import './NotesPage.css';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
@@ -185,7 +184,7 @@ export default function NotesPage() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  useNotesSync();
+
 
   const onLayoutChange = useCallback((_current, all) => {
     layoutsRef.current = all;

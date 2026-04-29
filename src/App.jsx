@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import Sidebar from './components/layout/Sidebar';
 import MobileNavbar from './components/layout/MobileNavbar';
@@ -10,6 +10,13 @@ import Modal from './components/shared/Modal';
 import { useGlobalStore } from './store/globalStore';
 import { useGoogleStore } from './store/googleStore';
 import { useSyncStore, initAutoSync } from './store/syncStore';
+import { useTaskStore } from './store/taskStore';
+import { useNoteStore } from './store/noteStore';
+import { usePersonalStore } from './store/personalStore';
+import { useJournalStore } from './store/journalStore';
+import { useAcademicStore } from './store/academicStore';
+import { useFinanceStore } from './store/financeStore';
+import { useFitnessStore } from './store/fitnessStore';
 
 // Overview
 import Dashboard from './pages/Dashboard';
@@ -33,6 +40,7 @@ import CalendarPage from './pages/settings/CalendarPage';
 import TimeAnalyticsPage from './pages/calendar/TimeAnalyticsPage';
 
 // Academics
+import AcademicsLayout from './components/academics/AcademicsLayout';
 import AcademicsHome from './pages/academics/AcademicsHome';
 import Subjects from './pages/academics/Subjects';
 import CGPATracker from './pages/academics/CGPATracker';
@@ -41,6 +49,7 @@ import AssignmentTracker from './pages/academics/AssignmentTracker';
 import AttendanceTracker from './pages/academics/AttendanceTracker';
 import Resources from './pages/academics/Resources';
 import AssessmentsDashboard from './pages/academics/AssessmentsDashboard';
+import SubjectDetail from './pages/academics/SubjectDetail';
 
 // AI/ML
 import AimlHome from './pages/aiml/AimlHome';
@@ -144,6 +153,8 @@ function AppContent() {
   const { isAuthenticated, userEmail } = useGoogleStore();
   const { pullFromCloud } = useSyncStore();
   const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
+  const location = useLocation();
+  const isAcademics = location.pathname.startsWith('/academics');
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -188,11 +199,29 @@ function AppContent() {
   // Synchronize with Firebase on Login/Load
   useEffect(() => {
     if (isAuthenticated && userEmail) {
+      // Start Real-time syncs
+      useTaskStore.getState().startRealtimeSync(userEmail);
+      useNoteStore.getState().startRealtimeSync(userEmail);
+      usePersonalStore.getState().startRealtimeSync(userEmail);
+      useJournalStore.getState().startRealtimeSync(userEmail);
+      useAcademicStore.getState().startRealtimeSync(userEmail);
+      useFinanceStore.getState().startRealtimeSync(userEmail);
+      useFitnessStore.getState().startRealtimeSync(userEmail);
+
       pullFromCloud(userEmail).then(() => {
         // Initialize auto-sync AFTER pulling from cloud
         initAutoSync(useGoogleStore);
       });
     }
+    return () => {
+      useTaskStore.getState().stopRealtimeSync();
+      useNoteStore.getState().stopRealtimeSync();
+      usePersonalStore.getState().stopRealtimeSync();
+      useJournalStore.getState().stopRealtimeSync();
+      useAcademicStore.getState().stopRealtimeSync();
+      useFinanceStore.getState().stopRealtimeSync();
+      useFitnessStore.getState().stopRealtimeSync();
+    };
   }, [isAuthenticated, userEmail, pullFromCloud]);
 
   return (
@@ -230,14 +259,17 @@ function AppContent() {
             <Route path="/google-sync" element={<GoogleIntegration />} />
 
             {/* Academics */}
-            <Route path="/academics" element={<AcademicsHome />} />
-            <Route path="/academics/subjects" element={<Subjects />} />
-            <Route path="/academics/cgpa" element={<CGPATracker />} />
-            <Route path="/academics/exams" element={<ExamTracker />} />
-            <Route path="/academics/assignments" element={<AssignmentTracker />} />
-            <Route path="/academics/assessments" element={<AssessmentsDashboard />} />
-            <Route path="/academics/attendance" element={<AttendanceTracker />} />
-            <Route path="/academics/resources" element={<Resources />} />
+            <Route path="/academics" element={<AcademicsLayout />}>
+              <Route index element={<AcademicsHome />} />
+              <Route path="subjects" element={<Subjects />} />
+              <Route path="cgpa" element={<CGPATracker />} />
+              <Route path="exams" element={<ExamTracker />} />
+              <Route path="assignments" element={<AssignmentTracker />} />
+              <Route path="assessments" element={<AssessmentsDashboard />} />
+              <Route path="attendance" element={<AttendanceTracker />} />
+              <Route path="resources" element={<Resources />} />
+              <Route path="subject/:id" element={<SubjectDetail />} />
+            </Route>
 
             {/* AI/ML */}
             <Route path="/aiml" element={<AimlHome />} />

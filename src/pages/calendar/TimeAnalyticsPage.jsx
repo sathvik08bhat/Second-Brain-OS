@@ -4,15 +4,18 @@ import {
   BarChart3, PieChart as PieChartIcon, 
   GripHorizontal, RotateCcw, Calendar, Clock, Activity
 } from 'lucide-react';
-import { ResponsiveGridLayout } from 'react-grid-layout';
+import { Responsive, WidthProvider } from 'react-grid-layout/legacy';
 import { 
   BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
 import PageWrapper from '../../components/layout/PageWrapper';
+import { WidgetCard } from '../../components/ui/WidgetCard';
 
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
+
+const ResponsiveGridLayout = WidthProvider(Responsive);
 
 const DEFAULT_LAYOUT = [
   { i: 'heatmap', x: 0, y: 0, w: 8, h: 6, minW: 5, minH: 4 },
@@ -23,14 +26,17 @@ const DEFAULT_LAYOUT = [
 const COLORS = ['var(--accent-primary)', '#06b6d4', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
 
 export default function TimeAnalyticsPage() {
-  const [layout, setLayout] = useState([]);
-
-  useEffect(() => {
-    // Initial load from localStorage
+  const [layout, setLayout] = useState(() => {
     const saved = localStorage.getItem('calendar_stats_layout');
-    if (saved) setLayout(JSON.parse(saved));
-    else setLayout(DEFAULT_LAYOUT);
-  }, []);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return DEFAULT_LAYOUT;
+      }
+    }
+    return DEFAULT_LAYOUT;
+  });
 
   const handleLayoutChange = (newLayout) => {
     setLayout(newLayout);
@@ -97,23 +103,9 @@ export default function TimeAnalyticsPage() {
         onLayoutChange={handleLayoutChange}
       >
         {/* Widget 1: Weekly Load Heatmap */}
-        <div key="heatmap">
-          <div className="bg-card border border-border/50 rounded-2xl shadow-sm flex flex-col w-full h-full overflow-hidden hover:shadow-md transition-shadow group">
-            <div className="drag-handle absolute top-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
-              <GripHorizontal size={16} className="text-muted-foreground/30" />
-            </div>
-            
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                <Clock size={18} />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-foreground">Schedule Density</h3>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Weekly Load Heatmap</p>
-              </div>
-            </div>
-
-            <div className="w-full h-[250px] min-h-[200px] flex-1 mt-4">
+        <WidgetCard key="heatmap" title="Schedule Density" icon={Clock}>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-4">Weekly Load Heatmap</p>
+            <div className="w-full h-[250px] min-h-[200px] flex-1">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={heatmapData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
@@ -124,27 +116,12 @@ export default function TimeAnalyticsPage() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-          </div>
-        </div>
+        </WidgetCard>
 
         {/* Widget 2: Event Distribution */}
-        <div key="distribution">
-          <div className="bg-card border border-border/50 rounded-2xl shadow-sm flex flex-col w-full h-full overflow-hidden hover:shadow-md transition-shadow group">
-            <div className="drag-handle absolute top-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
-              <GripHorizontal size={16} className="text-muted-foreground/30" />
-            </div>
-
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500">
-                <PieChartIcon size={18} />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-foreground">Time Allocation</h3>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">By Category</p>
-              </div>
-            </div>
-
-            <div className="w-full h-[250px] min-h-[200px] flex-1 mt-4">
+        <WidgetCard key="distribution" title="Time Allocation" icon={PieChartIcon}>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-4">By Category</p>
+            <div className="w-full h-[250px] min-h-[200px] flex-1">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -164,27 +141,12 @@ export default function TimeAnalyticsPage() {
                 </PieChart>
               </ResponsiveContainer>
             </div>
-          </div>
-        </div>
+        </WidgetCard>
 
         {/* Widget 3: Attendance Tracker */}
-        <div key="attendance">
-          <div className="bg-card border border-border/50 rounded-2xl shadow-sm flex flex-col w-full h-full overflow-hidden hover:shadow-md transition-shadow group">
-            <div className="drag-handle absolute top-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
-              <GripHorizontal size={16} className="text-muted-foreground/30" />
-            </div>
-
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 rounded-lg bg-green-500/10 text-green-500">
-                <Activity size={18} />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-foreground">Attendance Tracker</h3>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Percentage Per Subject</p>
-              </div>
-            </div>
-
-            <div className="w-full h-[250px] min-h-[200px] flex-1 mt-4">
+        <WidgetCard key="attendance" title="Attendance Tracker" icon={Activity}>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-4">Percentage Per Subject</p>
+            <div className="w-full h-[250px] min-h-[200px] flex-1">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={attendanceData} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(255,255,255,0.05)" />
@@ -195,8 +157,7 @@ export default function TimeAnalyticsPage() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-          </div>
-        </div>
+        </WidgetCard>
       </ResponsiveGridLayout>
     </PageWrapper>
   );

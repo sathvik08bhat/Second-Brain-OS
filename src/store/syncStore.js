@@ -14,7 +14,6 @@ import { useGsocStore } from './gsocStore';
 import { useHobbiesStore } from './hobbiesStore';
 import { useLeadershipStore } from './leadershipStore';
 import { useMentalHealthStore } from './mentalHealthStore';
-import { usePersonalStore } from './personalStore';
 import { usePlacementStore } from './placementStore';
 import { useStartupStore } from './startupStore';
 import { useTaskStore } from './taskStore';
@@ -22,7 +21,6 @@ import { useTravelStore } from './travelStore';
 import { useVaultStore } from './vaultStore';
 
 export const allStores = {
-  academic: useAcademicStore,
   aiml: useAimlStore,
   cat: useCatStore,
   club: useClubStore,
@@ -34,10 +32,8 @@ export const allStores = {
   hobbies: useHobbiesStore,
   leadership: useLeadershipStore,
   mentalHealth: useMentalHealthStore,
-  personal: usePersonalStore,
   placement: usePlacementStore,
   startup: useStartupStore,
-  task: useTaskStore,
   travel: useTravelStore,
   vault: useVaultStore,
 };

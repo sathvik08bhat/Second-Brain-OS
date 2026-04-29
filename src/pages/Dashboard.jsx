@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Responsive, WidthProvider } from 'react-grid-layout/legacy';
 import 'react-resizable/css/styles.css';
 import { motion } from 'framer-motion';
@@ -7,7 +7,7 @@ import {
   GraduationCap, Code2, BarChart3, Briefcase, Rocket, Users,
   Dumbbell, Brain, Palette, Plane, ArrowRight, Zap, TrendingUp,
   Wallet, Heart, Shield, CheckCircle, Plus, Cpu, Calendar, ListTodo, Clock,
-  GripVertical, Maximize2, FileText, Target
+  GripVertical, Maximize2, FileText, Target, User
 } from 'lucide-react';
 import PageWrapper from '../components/layout/PageWrapper';
 import StatsCard from '../components/shared/StatsCard';
@@ -270,7 +270,7 @@ export default function Dashboard() {
         >
           <div className="hero-greeting">
             <Zap size={24} className="hero-icon" />
-            <span>{getGreeting()}, Sathvik</span>
+            <span>{getGreeting()}</span>
           </div>
           <h1 className="hero-title">
             Your <span className="gradient-text">Second Brain</span> OS

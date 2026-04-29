@@ -1,6 +1,17 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { generateId } from '../utils/helpers';
+import { 
+  collection, 
+  doc, 
+  onSnapshot, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  serverTimestamp,
+  query,
+  orderBy,
+  setDoc
+} from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 const SPENDING_CATEGORIES = [
   'Food & Dining', 'Transport', 'Shopping', 'Bills & Utilities',
@@ -14,196 +25,185 @@ const INCOME_CATEGORIES = [
   'Refund', 'Interest', 'Investment Returns', 'Side Hustle', 'Other'
 ];
 
-export const useFinanceStore = create(
-  persist(
-    (set, get) => ({
-      accounts: [
-        { id: 'bank', name: 'Main Bank Account', type: 'bank', balance: 0, color: '#3b82f6', icon: 'bank' },
-        { id: 'cash', name: 'Cash Wallet', type: 'cash', balance: 0, color: '#10b981', icon: 'wallet' },
-        { id: 'upi', name: 'UPI (GPay/PhonePe)', type: 'upi', balance: 0, color: '#8b5cf6', icon: 'smartphone' }
-      ],
-      transactions: [],
-      budgets: {},           // { 'Food & Dining': 5000, 'Transport': 2000, ... }
-      savingsGoals: [],      // [{ id, name, targetAmount, currentAmount, deadline, color }]
-      recurringTransactions: [], // [{ id, title, amount, type, category, accountId, frequency, nextDate }]
-      emis: [],              // [{ id, name, totalAmount, emiAmount, paidCount, totalCount, startDate, accountId }]
+export const useFinanceStore = create((set, get) => ({
+  accounts: [],
+  transactions: [],
+  budgets: {},
+  savingsGoals: [],
+  recurringTransactions: [],
+  emis: [],
+  activeEmail: null,
+  isLoading: false,
+  unsubscribes: [],
 
-      // ── Accounts ──
-      addAccount: (acc) => set((state) => ({
-        accounts: [...state.accounts, { id: generateId(), balance: 0, color: '#6b7280', icon: 'wallet', ...acc }]
-      })),
+  // ── Sync Engine ──
+  startRealtimeSync: (userEmail) => {
+    if (!userEmail) return;
+    set({ activeEmail: userEmail });
+    
+    get().unsubscribes.forEach(unsub => unsub());
+    set({ isLoading: true });
 
-      updateAccount: (id, updates) => set((state) => ({
-        accounts: state.accounts.map(a => a.id === id ? { ...a, ...updates } : a)
-      })),
+    const collections = [
+      { name: 'accounts', path: 'accounts', sort: 'name', dir: 'asc' },
+      { name: 'transactions', path: 'transactions', sort: 'date', dir: 'desc' },
+      { name: 'savingsGoals', path: 'savingsGoals', sort: 'createdAt', dir: 'desc' },
+      { name: 'emis', path: 'emis', sort: 'createdAt', dir: 'desc' },
+    ];
 
-      deleteAccount: (id) => set((state) => ({
-        accounts: state.accounts.filter(a => a.id !== id),
-        transactions: state.transactions.filter(t => t.accountId !== id)
-      })),
+    const unsubs = collections.map(col => {
+      const colRef = collection(db, 'users', userEmail, col.path);
+      const q = query(colRef, orderBy(col.sort, col.dir));
+      
+      return onSnapshot(q, (snapshot) => {
+        const data = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        set({ [col.name]: data });
+      });
+    });
 
-      // ── Transactions ──
-      addTransaction: (tx) => set((state) => {
-        const amount = Number(tx.amount);
-        const newTx = {
-          id: generateId(),
-          createdAt: new Date().toISOString(),
-          date: new Date().toISOString().split('T')[0],
-          category: 'Other',
-          note: '',
-          linkedTaskId: null,
-          tags: [],
-          ...tx,
-          amount
-        };
+    // Sync Budgets (Single Doc)
+    const budgetRef = doc(db, 'users', userEmail, 'financeMeta', 'budgets');
+    const unsubBudgets = onSnapshot(budgetRef, (doc) => {
+      if (doc.exists()) set({ budgets: doc.data() });
+    });
 
-        const updatedAccounts = state.accounts.map(acc => {
-          if (acc.id === tx.accountId) {
-            return {
-              ...acc,
-              balance: acc.balance + (tx.type === 'income' ? amount : -amount)
-            };
-          }
-          return acc;
-        });
+    set({ unsubscribes: [...unsubs, unsubBudgets], isLoading: false });
+  },
 
-        return {
-          transactions: [...state.transactions, newTx],
-          accounts: updatedAccounts
-        };
-      }),
+  stopRealtimeSync: () => {
+    get().unsubscribes.forEach(unsub => unsub());
+    set({ unsubscribes: [] });
+  },
 
-      deleteTransaction: (id) => set((state) => {
-        const tx = state.transactions.find(t => t.id === id);
-        if (!tx) return state;
+  // ── Accounts ──
+  addAccount: async (acc) => {
+    const { activeEmail } = get();
+    if (!activeEmail) return;
+    const colRef = collection(db, 'users', activeEmail, 'accounts');
+    await addDoc(colRef, {
+      name: acc.name || "New Account",
+      type: acc.type || "bank",
+      balance: Number(acc.balance) || 0,
+      color: acc.color || "#3b82f6",
+      icon: acc.icon || "wallet",
+      createdAt: serverTimestamp()
+    });
+  },
 
-        const amount = Number(tx.amount);
-        const updatedAccounts = state.accounts.map(acc => {
-          if (acc.id === tx.accountId) {
-            return {
-              ...acc,
-              balance: acc.balance + (tx.type === 'income' ? -amount : amount)
-            };
-          }
-          return acc;
-        });
+  updateAccount: async (id, updates) => {
+    const { activeEmail } = get();
+    if (!activeEmail) return;
+    const docRef = doc(db, 'users', activeEmail, 'accounts', id);
+    await updateDoc(docRef, updates);
+  },
 
-        return {
-          transactions: state.transactions.filter(t => t.id !== id),
-          accounts: updatedAccounts
-        };
-      }),
+  deleteAccount: async (id) => {
+    const { activeEmail } = get();
+    if (!activeEmail) return;
+    const docRef = doc(db, 'users', activeEmail, 'accounts', id);
+    await deleteDoc(docRef);
+  },
 
-      // ── Budgets ──
-      setBudget: (category, amount) => set((state) => ({
-        budgets: { ...state.budgets, [category]: Number(amount) }
-      })),
+  // ── Transactions ──
+  addTransaction: async (tx) => {
+    const { activeEmail, accounts } = get();
+    if (!activeEmail) return;
+    const colRef = collection(db, 'users', activeEmail, 'transactions');
+    const amount = Number(tx.amount);
+    
+    await addDoc(colRef, {
+      title: tx.title || "Untitled",
+      amount: amount,
+      type: tx.type || "expense",
+      category: tx.category || "Other",
+      accountId: tx.accountId,
+      date: tx.date || new Date().toISOString().split('T')[0],
+      note: tx.note || "",
+      createdAt: serverTimestamp()
+    });
 
-      removeBudget: (category) => set((state) => {
-        const newBudgets = { ...state.budgets };
-        delete newBudgets[category];
-        return { budgets: newBudgets };
-      }),
+    // Update account balance
+    const account = accounts.find(a => a.id === tx.accountId);
+    if (account) {
+      const newBalance = account.balance + (tx.type === 'income' ? amount : -amount);
+      await get().updateAccount(tx.accountId, { balance: newBalance });
+    }
+  },
 
-      // ── Savings Goals ──
-      addSavingsGoal: (goal) => set((state) => ({
-        savingsGoals: [...state.savingsGoals, { id: generateId(), currentAmount: 0, color: '#10b981', createdAt: new Date().toISOString(), ...goal }]
-      })),
+  deleteTransaction: async (id) => {
+    const { activeEmail, transactions, accounts } = get();
+    if (!activeEmail) return;
+    const tx = transactions.find(t => t.id === id);
+    if (!tx) return;
 
-      updateSavingsGoal: (id, updates) => set((state) => ({
-        savingsGoals: state.savingsGoals.map(g => g.id === id ? { ...g, ...updates } : g)
-      })),
+    // Revert account balance
+    const account = accounts.find(a => a.id === tx.accountId);
+    if (account) {
+      const newBalance = account.balance + (tx.type === 'income' ? -tx.amount : tx.amount);
+      await get().updateAccount(tx.accountId, { balance: newBalance });
+    }
 
-      deleteSavingsGoal: (id) => set((state) => ({
-        savingsGoals: state.savingsGoals.filter(g => g.id !== id)
-      })),
+    const docRef = doc(db, 'users', activeEmail, 'transactions', id);
+    await deleteDoc(docRef);
+  },
 
-      contributeSavings: (id, amount) => set((state) => ({
-        savingsGoals: state.savingsGoals.map(g =>
-          g.id === id ? { ...g, currentAmount: g.currentAmount + Number(amount) } : g
-        )
-      })),
+  // ── Savings Goals ──
+  addSavingsGoal: async (goal) => {
+    const { activeEmail } = get();
+    if (!activeEmail) return;
+    const colRef = collection(db, 'users', activeEmail, 'savingsGoals');
+    await addDoc(colRef, {
+      ...goal,
+      currentAmount: Number(goal.currentAmount) || 0,
+      targetAmount: Number(goal.targetAmount) || 0,
+      createdAt: serverTimestamp()
+    });
+  },
 
-      // ── Recurring Transactions ──
-      addRecurring: (rec) => set((state) => ({
-        recurringTransactions: [...state.recurringTransactions, { id: generateId(), createdAt: new Date().toISOString(), frequency: 'monthly', ...rec }]
-      })),
+  // ── Budgets ──
+  setBudget: async (category, amount) => {
+    const { activeEmail, budgets } = get();
+    if (!activeEmail) return;
+    const docRef = doc(db, 'users', activeEmail, 'financeMeta', 'budgets');
+    await setDoc(docRef, { ...budgets, [category]: Number(amount) });
+  },
 
-      deleteRecurring: (id) => set((state) => ({
-        recurringTransactions: state.recurringTransactions.filter(r => r.id !== id)
-      })),
+  // ── Helpers ──
+  getTotalBalance: () => {
+    return get().accounts.reduce((sum, acc) => sum + acc.balance, 0);
+  },
 
-      // ── EMIs ──
-      addEMI: (emi) => set((state) => ({
-        emis: [...state.emis, { id: generateId(), paidCount: 0, createdAt: new Date().toISOString(), ...emi }]
-      })),
+  getMonthlyTrend: (months = 6) => {
+    const txs = get().transactions;
+    const result = [];
+    const now = new Date();
+    for (let i = months - 1; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const mStr = d.toISOString().substring(0, 7); // YYYY-MM
+      const monthTxs = txs.filter(t => t.date.startsWith(mStr));
+      const income = monthTxs.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+      const expense = monthTxs.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+      result.push({
+        month: d.toLocaleDateString('en-IN', { month: 'short' }),
+        income,
+        expense
+      });
+    }
+    return result;
+  },
 
-      payEMI: (id) => set((state) => ({
-        emis: state.emis.map(e => e.id === id ? { ...e, paidCount: e.paidCount + 1 } : e)
-      })),
+  getCategoryBreakdown: (type = 'expense') => {
+    const txs = get().transactions.filter(t => t.type === type);
+    const breakdown = {};
+    txs.forEach(t => {
+      breakdown[t.category] = (breakdown[t.category] || 0) + t.amount;
+    });
+    return Object.entries(breakdown).map(([name, value]) => ({ name, value }));
+  },
 
-      deleteEMI: (id) => set((state) => ({
-        emis: state.emis.filter(e => e.id !== id)
-      })),
-
-      // ── Analytics Helpers ──
-      getTotalBalance: () => {
-        return get().accounts.reduce((sum, acc) => sum + acc.balance, 0);
-      },
-
-      getMonthlyData: (year, month) => {
-        const txs = get().transactions.filter(t => {
-          const d = new Date(t.date);
-          return d.getFullYear() === year && d.getMonth() === month;
-        });
-        const income = txs.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
-        const expense = txs.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
-        return { income, expense, net: income - expense, transactions: txs };
-      },
-
-      getCategoryBreakdown: (type = 'expense', months = 1) => {
-        const cutoff = new Date();
-        cutoff.setMonth(cutoff.getMonth() - months);
-        const txs = get().transactions.filter(t => t.type === type && new Date(t.date) >= cutoff);
-        const breakdown = {};
-        txs.forEach(t => {
-          breakdown[t.category] = (breakdown[t.category] || 0) + t.amount;
-        });
-        return Object.entries(breakdown).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
-      },
-
-      getMonthlyTrend: (months = 6) => {
-        const result = [];
-        const now = new Date();
-        for (let i = months - 1; i >= 0; i--) {
-          const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-          const data = get().getMonthlyData(d.getFullYear(), d.getMonth());
-          result.push({
-            month: d.toLocaleDateString('en-IN', { month: 'short', year: '2-digit' }),
-            income: data.income,
-            expense: data.expense,
-            net: data.net
-          });
-        }
-        return result;
-      },
-
-      getBudgetStatus: () => {
-        const now = new Date();
-        const txs = get().transactions.filter(t => {
-          const d = new Date(t.date);
-          return t.type === 'expense' && d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
-        });
-        const budgets = get().budgets;
-        return Object.entries(budgets).map(([category, budget]) => {
-          const spent = txs.filter(t => t.category === category).reduce((s, t) => s + t.amount, 0);
-          return { category, budget, spent, remaining: budget - spent, percentage: budget > 0 ? Math.round((spent / budget) * 100) : 0 };
-        });
-      },
-
-      SPENDING_CATEGORIES,
-      INCOME_CATEGORIES,
-    }),
-    { name: 'finance-store' }
-  )
-);
+  SPENDING_CATEGORIES,
+  INCOME_CATEGORIES,
+}));

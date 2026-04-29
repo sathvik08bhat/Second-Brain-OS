@@ -9,6 +9,7 @@ import {
   Target, FileText
 } from 'lucide-react';
 import { useGlobalStore } from '../../store/globalStore';
+import { useGoogleStore } from '../../store/googleStore';
 import './Sidebar.css';
 
 export const navSections = [
@@ -189,6 +190,8 @@ export const navSections = [
 
 export default function Sidebar({ onOpenSettings }) {
   const { sidebarCollapsed, toggleSidebar, theme, toggleTheme, enabledModules } = useGlobalStore();
+  const { userEmail } = useGoogleStore();
+  const userName = userEmail ? userEmail.split('@')[0].replace(/\./g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Brain User';
   const [expandedItems, setExpandedItems] = useState({});
   const location = useLocation();
 
@@ -325,11 +328,11 @@ export default function Sidebar({ onOpenSettings }) {
         <div style={{ padding: '0.75rem 1rem', borderTop: '1px solid var(--border-primary)' }}>
           <div className="sidebar-user" style={{ borderTop: 'none', padding: 0, marginBottom: '0.5rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', flex: 1, gap: '0.6rem' }}>
-              <div className="user-avatar" onClick={onOpenSettings} style={{ cursor: 'pointer' }} title="Settings & Modules">SB</div>
-              <div className="user-info">
-                <span className="user-name" style={{ cursor: 'pointer' }} onClick={onOpenSettings}>Sathvik Bhat</span>
-                <span className="user-college">IIIT Bhubaneswar</span>
-              </div>
+               <div className="user-avatar" onClick={onOpenSettings} style={{ cursor: 'pointer' }} title="Settings & Modules">{userName.charAt(0)}</div>
+               <div className="user-info">
+                 <span className="user-name" style={{ cursor: 'pointer' }} onClick={onOpenSettings}>{userName}</span>
+                 <span className="user-college">Second Brain OS</span>
+               </div>
             </div>
             <button className="theme-toggle-btn" onClick={toggleTheme} title="Toggle Day/Night Mode">
               {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}

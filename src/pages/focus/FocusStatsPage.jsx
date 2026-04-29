@@ -4,15 +4,18 @@ import {
   LineChart as LineChartIcon, PieChart as PieChartIcon, 
   GripHorizontal, RotateCcw, Target, Zap, Clock, TrendingUp
 } from 'lucide-react';
-import { ResponsiveGridLayout } from 'react-grid-layout';
+import { Responsive, WidthProvider } from 'react-grid-layout/legacy';
 import { 
   LineChart, Line, AreaChart, Area, PieChart, Pie, Cell, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar
 } from 'recharts';
 import PageWrapper from '../../components/layout/PageWrapper';
+import { WidgetCard } from '../../components/ui/WidgetCard';
 
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
+
+const ResponsiveGridLayout = WidthProvider(Responsive);
 
 const DEFAULT_LAYOUT = [
   { i: 'hours', x: 0, y: 0, w: 12, h: 5, minW: 6, minH: 4 },
@@ -24,14 +27,17 @@ const DEFAULT_LAYOUT = [
 const COLORS = ['var(--accent-primary)', '#ef4444'];
 
 export default function FocusStatsPage() {
-  const [layout, setLayout] = useState([]);
-
-  useEffect(() => {
-    // Initial load from localStorage
+  const [layout, setLayout] = useState(() => {
     const saved = localStorage.getItem('focus_stats_layout');
-    if (saved) setLayout(JSON.parse(saved));
-    else setLayout(DEFAULT_LAYOUT);
-  }, []);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return DEFAULT_LAYOUT;
+      }
+    }
+    return DEFAULT_LAYOUT;
+  });
 
   const handleLayoutChange = (newLayout) => {
     setLayout(newLayout);
@@ -100,23 +106,9 @@ export default function FocusStatsPage() {
         onLayoutChange={handleLayoutChange}
       >
         {/* Widget 1: Deep Work Hours */}
-        <div key="hours" data-grid={{ x: 0, y: 0, w: 12, h: 6, minW: 6, minH: 4 }}>
-          <div className="bg-card border border-border/50 rounded-2xl shadow-sm flex flex-col w-full h-full overflow-hidden hover:shadow-md transition-shadow group">
-            <div className="drag-handle absolute top-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
-              <GripHorizontal size={16} className="text-muted-foreground/30" />
-            </div>
-            
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                <Clock size={18} />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-foreground">Deep Work Hours</h3>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Weekly Trends</p>
-              </div>
-            </div>
-
-            <div className="w-full h-[250px] min-h-[200px] flex-1 mt-4">
+        <WidgetCard key="hours" data-grid={{ x: 0, y: 0, w: 12, h: 6, minW: 6, minH: 4 }} title="Deep Work Hours" icon={Clock}>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-4">Weekly Trends</p>
+            <div className="w-full h-[250px] min-h-[200px] flex-1">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={hoursData}>
                   <defs>
@@ -133,27 +125,12 @@ export default function FocusStatsPage() {
                 </AreaChart>
               </ResponsiveContainer>
             </div>
-          </div>
-        </div>
+        </WidgetCard>
 
         {/* Widget 2: Session Success Rate */}
-        <div key="success" data-grid={{ x: 0, y: 6, w: 4, h: 6, minW: 3, minH: 4 }}>
-          <div className="bg-card border border-border/50 rounded-2xl shadow-sm flex flex-col w-full h-full overflow-hidden hover:shadow-md transition-shadow group">
-            <div className="drag-handle absolute top-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
-              <GripHorizontal size={16} className="text-muted-foreground/30" />
-            </div>
-
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-green-500/10 text-green-500">
-                <Target size={18} />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-foreground">Success Rate</h3>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Completed vs Abandoned</p>
-              </div>
-            </div>
-
-            <div className="w-full h-[250px] min-h-[200px] flex-1 mt-4">
+        <WidgetCard key="success" data-grid={{ x: 0, y: 6, w: 4, h: 6, minW: 3, minH: 4 }} title="Success Rate" icon={Target}>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-4">Completed vs Abandoned</p>
+            <div className="w-full h-[250px] min-h-[200px] flex-1">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -173,27 +150,12 @@ export default function FocusStatsPage() {
                 </PieChart>
               </ResponsiveContainer>
             </div>
-          </div>
-        </div>
+        </WidgetCard>
 
         {/* Widget 3: Focus vs. Break Ratio */}
-        <div key="ratio" data-grid={{ x: 4, y: 6, w: 8, h: 6, minW: 4, minH: 4 }}>
-          <div className="bg-card border border-border/50 rounded-2xl shadow-sm flex flex-col w-full h-full overflow-hidden hover:shadow-md transition-shadow group">
-            <div className="drag-handle absolute top-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
-              <GripHorizontal size={16} className="text-muted-foreground/30" />
-            </div>
-
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500">
-                <Zap size={18} />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-foreground">Focus Ratio</h3>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Work vs Rest</p>
-              </div>
-            </div>
-
-            <div className="w-full h-[250px] min-h-[200px] flex-1 mt-4">
+        <WidgetCard key="ratio" data-grid={{ x: 4, y: 6, w: 8, h: 6, minW: 4, minH: 4 }} title="Focus Ratio" icon={Zap}>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-4">Work vs Rest</p>
+            <div className="w-full h-[250px] min-h-[200px] flex-1">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={ratioData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
@@ -204,27 +166,12 @@ export default function FocusStatsPage() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-          </div>
-        </div>
+        </WidgetCard>
 
         {/* Widget 4: Productivity Peak */}
-        <div key="peak">
-          <div className="bg-card border border-border/50 rounded-2xl shadow-sm flex flex-col w-full h-full overflow-hidden hover:shadow-md transition-shadow group">
-            <div className="drag-handle absolute top-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
-              <GripHorizontal size={16} className="text-muted-foreground/30" />
-            </div>
-
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-orange-500/10 text-orange-500">
-                <TrendingUp size={18} />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-foreground">Peak Performance</h3>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">Hour Efficiency</p>
-              </div>
-            </div>
-
-            <div className="w-full h-[250px] min-h-[200px] flex-1 mt-4">
+        <WidgetCard key="peak" title="Peak Performance" icon={TrendingUp}>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mb-4">Hour Efficiency</p>
+            <div className="w-full h-[250px] min-h-[200px] flex-1">
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart cx="50%" cy="50%" outerRadius="80%" data={peakData}>
                   <PolarGrid stroke="rgba(255,255,255,0.1)" />
@@ -234,8 +181,7 @@ export default function FocusStatsPage() {
                 </RadarChart>
               </ResponsiveContainer>
             </div>
-          </div>
-        </div>
+        </WidgetCard>
       </ResponsiveGridLayout>
     </PageWrapper>
   );

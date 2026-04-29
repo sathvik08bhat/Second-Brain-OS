@@ -1,62 +1,119 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { generateId } from '../utils/helpers';
+import { 
+  collection, 
+  doc, 
+  onSnapshot, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  serverTimestamp,
+  query,
+  orderBy,
+  setDoc
+} from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
-export const useFitnessStore = create(
-  persist(
-    (set, get) => ({
-      weightLogs: [],
-      meals: [],
-      workouts: [],
-      cardioLogs: [],
-      measurements: [],
-      targetWeight: 75,
-      currentWeight: 89,
+export const useFitnessStore = create((set, get) => ({
+  weightLogs: [],
+  meals: [],
+  workouts: [],
+  cardioLogs: [],
+  measurements: [],
+  targetWeight: 0,
+  currentWeight: 0,
+  activeEmail: null,
+  isLoading: false,
+  unsubscribes: [],
 
-      setTargetWeight: (w) => set({ targetWeight: w }),
+  // ── Sync Engine ──
+  startRealtimeSync: (userEmail) => {
+    if (!userEmail) return;
+    set({ activeEmail: userEmail });
+    
+    get().unsubscribes.forEach(unsub => unsub());
+    set({ isLoading: true });
 
-      // Weight Logs
-      addWeightLog: (w) => {
-        set((s) => ({
-          weightLogs: [...s.weightLogs, { id: generateId(), createdAt: new Date().toISOString(), ...w }],
-          currentWeight: w.weight,
+    const collections = [
+      { name: 'weightLogs', path: 'weightLogs', sort: 'date', dir: 'desc' },
+      { name: 'meals', path: 'meals', sort: 'date', dir: 'desc' },
+      { name: 'workouts', path: 'workouts', sort: 'date', dir: 'desc' },
+      { name: 'cardioLogs', path: 'cardioLogs', sort: 'date', dir: 'desc' },
+    ];
+
+    const unsubs = collections.map(col => {
+      const colRef = collection(db, 'users', userEmail, col.path);
+      const q = query(colRef, orderBy(col.sort, col.dir));
+      
+      return onSnapshot(q, (snapshot) => {
+        const data = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
         }));
-      },
-      deleteWeightLog: (id) => set((s) => ({ weightLogs: s.weightLogs.filter((w) => w.id !== id) })),
+        set({ [col.name]: data });
+        if (col.name === 'weightLogs' && data.length > 0) {
+          set({ currentWeight: data[0].weight });
+        }
+      });
+    });
 
-      // Meals
-      addMeal: (m) => set((s) => ({ meals: [...s.meals, { id: generateId(), createdAt: new Date().toISOString(), ...m }] })),
-      updateMeal: (id, u) => set((s) => ({ meals: s.meals.map((m) => m.id === id ? { ...m, ...u } : m) })),
-      deleteMeal: (id) => set((s) => ({ meals: s.meals.filter((m) => m.id !== id) })),
+    // Sync Goals
+    const goalRef = doc(db, 'users', userEmail, 'fitnessMeta', 'goals');
+    const unsubGoals = onSnapshot(goalRef, (doc) => {
+      if (doc.exists()) set({ targetWeight: doc.data().targetWeight || 0 });
+    });
 
-      getDailyCalories: (date) => {
-        const meals = get().meals.filter((m) => m.date === date);
-        return meals.reduce((sum, m) => sum + (m.calories || 0), 0);
-      },
+    set({ unsubscribes: [...unsubs, unsubGoals], isLoading: false });
+  },
 
-      getDailyMacros: (date) => {
-        const meals = get().meals.filter((m) => m.date === date);
-        return {
-          protein: meals.reduce((sum, m) => sum + (m.protein || 0), 0),
-          carbs: meals.reduce((sum, m) => sum + (m.carbs || 0), 0),
-          fat: meals.reduce((sum, m) => sum + (m.fat || 0), 0),
-        };
-      },
+  stopRealtimeSync: () => {
+    get().unsubscribes.forEach(unsub => unsub());
+    set({ unsubscribes: [] });
+  },
 
-      // Workouts
-      addWorkout: (w) => set((s) => ({ workouts: [...s.workouts, { id: generateId(), createdAt: new Date().toISOString(), exercises: [], ...w }] })),
-      updateWorkout: (id, u) => set((s) => ({ workouts: s.workouts.map((w) => w.id === id ? { ...w, ...u } : w) })),
-      deleteWorkout: (id) => set((s) => ({ workouts: s.workouts.filter((w) => w.id !== id) })),
+  setTargetWeight: async (w) => {
+    const { activeEmail } = get();
+    if (!activeEmail) return;
+    const docRef = doc(db, 'users', activeEmail, 'fitnessMeta', 'goals');
+    await setDoc(docRef, { targetWeight: Number(w) }, { merge: true });
+  },
 
-      // Cardio
-      addCardio: (c) => set((s) => ({ cardioLogs: [...s.cardioLogs, { id: generateId(), createdAt: new Date().toISOString(), ...c }] })),
-      updateCardio: (id, u) => set((s) => ({ cardioLogs: s.cardioLogs.map((c) => c.id === id ? { ...c, ...u } : c) })),
-      deleteCardio: (id) => set((s) => ({ cardioLogs: s.cardioLogs.filter((c) => c.id !== id) })),
+  addWeightLog: async (w) => {
+    const { activeEmail } = get();
+    if (!activeEmail) return;
+    const colRef = collection(db, 'users', activeEmail, 'weightLogs');
+    await addDoc(colRef, {
+      weight: Number(w.weight),
+      date: w.date || new Date().toISOString().split('T')[0],
+      createdAt: serverTimestamp()
+    });
+  },
 
-      // Measurements
-      addMeasurement: (m) => set((s) => ({ measurements: [...s.measurements, { id: generateId(), createdAt: new Date().toISOString(), ...m }] })),
-      deleteMeasurement: (id) => set((s) => ({ measurements: s.measurements.filter((m) => m.id !== id) })),
-    }),
-    { name: 'fitness-store' }
-  )
-);
+  addWorkout: async (w) => {
+    const { activeEmail } = get();
+    if (!activeEmail) return;
+    const colRef = collection(db, 'users', activeEmail, 'workouts');
+    await addDoc(colRef, {
+      ...w,
+      date: w.date || new Date().toISOString().split('T')[0],
+      createdAt: serverTimestamp()
+    });
+  },
+
+  addCardio: async (c) => {
+    const { activeEmail } = get();
+    if (!activeEmail) return;
+    const colRef = collection(db, 'users', activeEmail, 'cardioLogs');
+    await addDoc(colRef, {
+      ...c,
+      date: c.date || new Date().toISOString().split('T')[0],
+      createdAt: serverTimestamp()
+    });
+  },
+
+  deleteWorkout: async (id) => {
+    const { activeEmail } = get();
+    if (!activeEmail) return;
+    const docRef = doc(db, 'users', activeEmail, 'workouts', id);
+    await deleteDoc(docRef);
+  },
+}));

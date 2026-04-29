@@ -1,5 +1,16 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { 
+  collection, 
+  doc, 
+  onSnapshot, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  serverTimestamp,
+  query,
+  orderBy
+} from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 // Debounce utility map to handle multiple notes
 const saveTimeouts = new Map();
@@ -11,85 +22,119 @@ const debouncedSave = (noteId, callback, delay = 1000) => {
   }, delay));
 };
 
-export const useNoteStore = create(
-  persist(
-    (set, get) => ({
-      notes: [],
-      openNoteIds: [], // IDs of notes currently on the canvas
-      activeNoteId: null,
-      lastSaved: null,
-      isSaving: false,
+export const useNoteStore = create((set, get) => ({
+  notes: [],
+  openNoteIds: [], // IDs of notes currently on the canvas
+  activeNoteId: null,
+  activeEmail: null,
+  isLoading: false,
+  isSaving: false,
+  lastSaved: null,
+  unsubscribes: [],
 
-      createNote: (title = 'Untitled') => {
-        const id = crypto.randomUUID();
-        const note = {
-          id,
-          title,
-          content: { type: 'doc', content: [{ type: 'paragraph' }] },
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-        set((s) => ({
-          notes: [note, ...s.notes],
-          openNoteIds: [...s.openNoteIds, id],
-          activeNoteId: id,
-        }));
-        return id;
-      },
+  // ── Sync Engine ──
+  startRealtimeSync: (userEmail) => {
+    if (!userEmail) return;
+    set({ activeEmail: userEmail });
+    
+    // Clear existing
+    get().unsubscribes.forEach(unsub => unsub());
+    set({ isLoading: true });
 
-      setActiveNote: (noteId) => {
-        set((s) => ({
-          activeNoteId: noteId,
-          openNoteIds: s.openNoteIds.includes(noteId) ? s.openNoteIds : [...s.openNoteIds, noteId]
-        }));
-      },
+    const notesRef = collection(db, 'users', userEmail, 'notes');
+    const q = query(notesRef, orderBy('updatedAt', 'desc'));
+    
+    const unsub = onSnapshot(q, (snapshot) => {
+      const notes = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || new Date().toISOString()
+      }));
+      set({ notes, isLoading: false });
+    });
 
-      toggleOpenNote: (noteId) => {
-        set((s) => {
-          const isOpen = s.openNoteIds.includes(noteId);
-          if (isOpen) {
-            return { openNoteIds: s.openNoteIds.filter(id => id !== noteId) };
-          } else {
-            return { openNoteIds: [...s.openNoteIds, noteId], activeNoteId: noteId };
-          }
-        });
-      },
+    set({ unsubscribes: [unsub] });
+  },
 
-      updateNoteContent: (noteId, content) => {
-        // Update local state immediately for responsiveness
-        set((s) => ({
-          notes: s.notes.map((n) =>
-            n.id === noteId ? { ...n, content, updatedAt: new Date().toISOString() } : n
-          ),
-        }));
+  stopRealtimeSync: () => {
+    get().unsubscribes.forEach(unsub => unsub());
+    set({ unsubscribes: [] });
+  },
 
-        // Debounced "sync" or "save" indicator
-        debouncedSave(noteId, () => {
-          set({ isSaving: true });
-          setTimeout(() => {
-            set({ lastSaved: new Date().toISOString(), isSaving: false });
-          }, 500);
-        });
-      },
+  // ── Actions ──
+  createNote: async (title = 'Untitled') => {
+    const { activeEmail } = get();
+    if (!activeEmail) return;
+    const notesRef = collection(db, 'users', activeEmail, 'notes');
+    const docRef = await addDoc(notesRef, {
+      title,
+      content: { type: 'doc', content: [{ type: 'paragraph' }] },
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+    
+    set((s) => ({
+      openNoteIds: [...s.openNoteIds, docRef.id],
+      activeNoteId: docRef.id,
+    }));
+    return docRef.id;
+  },
 
-      updateTitle: (noteId, title) => {
-        set((s) => ({
-          notes: s.notes.map((n) =>
-            n.id === noteId ? { ...n, title, updatedAt: new Date().toISOString() } : n
-          ),
-        }));
-      },
+  setActiveNote: (noteId) => {
+    set((s) => ({
+      activeNoteId: noteId,
+      openNoteIds: s.openNoteIds.includes(noteId) ? s.openNoteIds : [...s.openNoteIds, noteId]
+    }));
+  },
 
-      deleteNote: (noteId) => {
-        set((s) => ({
-          notes: s.notes.filter((n) => n.id !== noteId),
-          openNoteIds: s.openNoteIds.filter(id => id !== noteId),
-          activeNoteId: s.activeNoteId === noteId ? null : s.activeNoteId,
-        }));
-      },
+  toggleOpenNote: (noteId) => {
+    set((s) => {
+      const isOpen = s.openNoteIds.includes(noteId);
+      if (isOpen) {
+        return { openNoteIds: s.openNoteIds.filter(id => id !== noteId) };
+      } else {
+        return { openNoteIds: [...s.openNoteIds, noteId], activeNoteId: noteId };
+      }
+    });
+  },
 
-      setNotes: (notes) => set({ notes }),
-    }),
-    { name: 'note-store' }
-  )
-);
+  updateNoteContent: async (noteId, content) => {
+    const { activeEmail } = get();
+    if (!activeEmail) return;
+    
+    // Update local state immediately for visual feedback
+    set({ isSaving: true });
+
+    debouncedSave(noteId, async () => {
+      const docRef = doc(db, 'users', activeEmail, 'notes', noteId);
+      await updateDoc(docRef, {
+        content,
+        updatedAt: serverTimestamp()
+      });
+      set({ lastSaved: new Date().toISOString(), isSaving: false });
+    });
+  },
+
+  updateTitle: async (noteId, title) => {
+    const { activeEmail } = get();
+    if (!activeEmail) return;
+    const docRef = doc(db, 'users', activeEmail, 'notes', noteId);
+    await updateDoc(docRef, {
+      title,
+      updatedAt: serverTimestamp()
+    });
+  },
+
+  deleteNote: async (noteId) => {
+    const { activeEmail } = get();
+    if (!activeEmail) return;
+    const docRef = doc(db, 'users', activeEmail, 'notes', noteId);
+    await deleteDoc(docRef);
+    set((s) => ({
+      openNoteIds: s.openNoteIds.filter(id => id !== noteId),
+      activeNoteId: s.activeNoteId === noteId ? null : s.activeNoteId,
+    }));
+  },
+
+  setNotes: (notes) => set({ notes }),
+}));

@@ -349,6 +349,76 @@ export const useGoogleStore = create(
         return res.json();
       },
 
+      createRecurringCalendarEvent: async ({ title, description, dayOfWeek, startTime, endTime, colorId }) => {
+        const { accessToken, isTokenValid } = get();
+        if (!isTokenValid()) throw new Error('Not authenticated');
+
+        // Map day names to RRULE format
+        const dayMap = {
+          'Monday': 'MO', 'Tuesday': 'TU', 'Wednesday': 'WE', 'Thursday': 'TH', 
+          'Friday': 'FR', 'Saturday': 'SA', 'Sunday': 'SU'
+        };
+        const rruleDay = dayMap[dayOfWeek];
+
+        // To create a recurring event, we need a "base" start date.
+        // Let's pick the next occurrence of this day of the week.
+        const getNextDayOccurrence = (dayName) => {
+          const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+          const today = new Date();
+          const targetDay = days.indexOf(dayName);
+          const currentDay = today.getDay();
+          let diff = targetDay - currentDay;
+          if (diff < 0) diff += 7;
+          const nextDay = new Date(today);
+          nextDay.setDate(today.getDate() + diff);
+          return nextDay;
+        };
+
+        const startDate = getNextDayOccurrence(dayOfWeek);
+        const [startHours, startMinutes] = startTime.split(':');
+        startDate.setHours(parseInt(startHours), parseInt(startMinutes), 0, 0);
+
+        const endDate = new Date(startDate);
+        const [endHours, endMinutes] = endTime.split(':');
+        endDate.setHours(parseInt(endHours), parseInt(endMinutes), 0, 0);
+
+        const event = {
+          summary: title,
+          description: description || '',
+          start: {
+            dateTime: startDate.toISOString(),
+            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          },
+          end: {
+            dateTime: endDate.toISOString(),
+            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          },
+          recurrence: [`RRULE:FREQ=WEEKLY;BYDAY=${rruleDay}`],
+          reminders: {
+            useDefault: false,
+            overrides: [{ method: 'popup', minutes: 15 }],
+          },
+        };
+
+        if (colorId) event.colorId = colorId;
+
+        const res = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(event),
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error?.message || 'Failed to create recurring event');
+        }
+
+        return res.json();
+      },
+
       deleteCalendarEvent: async (eventId) => {
         const { accessToken, isTokenValid } = get();
         if (!isTokenValid()) throw new Error('Not authenticated');

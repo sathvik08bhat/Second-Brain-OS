@@ -7,7 +7,7 @@ import { useGoogleStore } from '../../store/googleStore';
 export default function GoogleIntegration() {
   const {
     isAuthenticated, userEmail, signIn, signOut,
-    isTokenValid,
+    isTokenValid, syncPreferences, setSyncPreference
   } = useGoogleStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -162,6 +162,44 @@ export default function GoogleIntegration() {
             </ul>
           </motion.div>
         </div>
+
+        {/* Sync Preferences */}
+        {isAuthenticated && tokenValid && (
+          <motion.div 
+            className="p-8 bg-card border border-border rounded-2xl space-y-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-500">
+                <Settings size={24} />
+              </div>
+              <h3 className="font-bold text-xl">Automation & Sync Settings</h3>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[
+                { key: 'autoSyncTasks', label: 'Auto-sync Google Tasks', color: 'bg-green-500' },
+                { key: 'autoSyncAcademics', label: 'Auto-sync Academic Classes', color: 'bg-blue-500' },
+                { key: 'autoSyncAiml', label: 'Auto-sync AIML Roadmap', color: 'bg-purple-500' },
+              ].map((pref) => (
+                <label key={pref.key} className="flex items-center justify-between p-4 bg-secondary/50 rounded-xl border border-border cursor-pointer hover:bg-secondary transition-all">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold">{pref.label}</span>
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mt-1">Real-time Push</span>
+                  </div>
+                  <div 
+                    onClick={() => setSyncPreference(pref.key, !syncPreferences[pref.key])}
+                    className={`w-12 h-6 rounded-full p-1 transition-colors duration-300 relative ${syncPreferences[pref.key] ? pref.color : 'bg-muted'}`}
+                  >
+                    <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-300 ${syncPreferences[pref.key] ? 'translate-x-6' : 'translate-x-0'}`} />
+                  </div>
+                </label>
+              ))}
+            </div>
+          </motion.div>
+        )}
 
         {/* Footer Links */}
         <motion.div 

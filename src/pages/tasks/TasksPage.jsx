@@ -37,9 +37,9 @@ export default function TasksPage() {
       return (pri[b.priority] || 0) - (pri[a.priority] || 0);
     });
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!form.title.trim()) return;
-    addTask({
+    await addTask({
       ...form,
       dueDate: form.dueDate || null,
       deadline: form.deadline || null,

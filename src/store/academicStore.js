@@ -1,133 +1,166 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { generateId } from '../utils/helpers';
+import { 
+  collection, 
+  doc, 
+  onSnapshot, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  serverTimestamp,
+  query,
+  orderBy,
+  setDoc
+} from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
-export const useAcademicStore = create(
-  persist(
-    (set, get) => ({
-      subjects: [],
-      exams: [],
-      assignments: [],
-      attendance: [],
-      timetable: [],
-      studySessions: [],
-      resources: [],
-      googleDriveConnected: false,
-      currentSemester: 1,
+export const useAcademicStore = create((set, get) => ({
+  subjects: [],
+  tasks: [],
+  topics: [],
+  activeEmail: null,
+  isLoading: false,
+  unsubscribes: [],
 
-      setCurrentSemester: (sem) => set({ currentSemester: sem }),
-      setGoogleDriveConnected: (val) => set({ googleDriveConnected: val }),
+  // CGPA Tracker State
+  academicProfile: {
+    currentCGPA: 7.32,
+    targetCGPA: 8.00,
+    totalCreditsEarned: 73,
+    lastSynced: '21 May 2025, 10:30 AM'
+  },
+  
+  semesters: [
+    { id: 1, label: 'Semester 1', status: 'Completed', sgpa: 7.18, credits: 24, cgpaAfterSem: 7.18 },
+    { id: 2, label: 'Semester 2', status: 'Completed', sgpa: 7.56, credits: 25, cgpaAfterSem: 7.37 },
+    { id: 3, label: 'Semester 3', status: 'Completed', sgpa: 7.22, credits: 24, cgpaAfterSem: 7.32 },
+    { id: 4, label: 'Semester 4', status: 'In Progress', sgpa: null, credits: 24, cgpaAfterSem: null },
+    { id: 5, label: 'Semester 5', status: 'Upcoming', sgpa: null, credits: 24, cgpaAfterSem: null },
+    { id: 6, label: 'Semester 6', status: 'Upcoming', sgpa: null, credits: 24, cgpaAfterSem: null },
+    { id: 7, label: 'Semester 7', status: 'Upcoming', sgpa: null, credits: 24, cgpaAfterSem: null },
+    { id: 8, label: 'Semester 8', status: 'Upcoming', sgpa: null, credits: 24, cgpaAfterSem: null }
+  ],
 
-      // ── Resources ──
-      addResource: (resource) => {
-        const id = generateId();
-        set((state) => ({ resources: [...state.resources, { id, createdAt: new Date().toISOString(), type: 'link', ...resource }] }));
-        return id;
+  // ── Sync Engine ──
+  startRealtimeSync: (userEmail) => {
+    if (!userEmail) return;
+    set({ activeEmail: userEmail });
+    get().unsubscribes.forEach(unsub => unsub());
+    set({ isLoading: true });
+
+    const subjectsRef = collection(db, 'users', userEmail, 'subjects');
+    const unsubSubjects = onSnapshot(query(subjectsRef, orderBy('createdAt', 'desc')), (snapshot) => {
+      set({ subjects: snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })), isLoading: false });
+    });
+
+    const topicsRef = collection(db, 'users', userEmail, 'topics');
+    const unsubTopics = onSnapshot(topicsRef, (snapshot) => {
+      set({ topics: snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) });
+    });
+
+    const metaRef = doc(db, 'users', userEmail, 'academicMeta', 'global');
+    const unsubMeta = onSnapshot(metaRef, (doc) => {
+      if (doc.exists()) {
+        const data = doc.data();
+        set({ 
+          academicProfile: { ...get().academicProfile, ...data.profile },
+          semesters: data.semesters || get().semesters
+        });
+      }
+    });
+
+    set({ unsubscribes: [unsubSubjects, unsubTopics, unsubMeta] });
+  },
+
+  stopRealtimeSync: () => {
+    get().unsubscribes.forEach(unsub => unsub());
+    set({ unsubscribes: [] });
+  },
+
+  // ── Actions ──
+  updateTargetCGPA: async (val) => {
+    const { activeEmail, academicProfile } = get();
+    const newProfile = { ...academicProfile, targetCGPA: Number(val) };
+    set({ academicProfile: newProfile });
+    if (activeEmail) {
+      await setDoc(doc(db, 'users', activeEmail, 'academicMeta', 'global'), { profile: newProfile }, { merge: true });
+    }
+  },
+
+  syncFromPortal: async (credentials) => {
+    set({ isLoading: true });
+    // Simulate API call to /api/scrape-cgpa
+    await new Promise(r => setTimeout(r, 2000));
+    
+    const mockResponse = {
+      profile: {
+        currentCGPA: 7.32,
+        totalCreditsEarned: 73,
+        lastSynced: new Date().toLocaleString()
       },
-      updateResource: (id, updates) => set((state) => ({
-        resources: state.resources.map((r) => r.id === id ? { ...r, ...updates } : r),
-      })),
-      deleteResource: (id) => set((state) => ({
-        resources: state.resources.filter((r) => r.id !== id),
-      })),
+      semesters: [
+        { id: 1, label: 'Semester 1', status: 'Completed', sgpa: 7.18, credits: 24, cgpaAfterSem: 7.18 },
+        { id: 2, label: 'Semester 2', status: 'Completed', sgpa: 7.56, credits: 25, cgpaAfterSem: 7.37 },
+        { id: 3, label: 'Semester 3', status: 'Completed', sgpa: 7.22, credits: 24, cgpaAfterSem: 7.32 },
+        { id: 4, label: 'Semester 4', status: 'In Progress', sgpa: null, credits: 24, cgpaAfterSem: null },
+        { id: 5, label: 'Semester 5', status: 'Upcoming', sgpa: null, credits: 24, cgpaAfterSem: null },
+        { id: 6, label: 'Semester 6', status: 'Upcoming', sgpa: null, credits: 24, cgpaAfterSem: null },
+        { id: 7, label: 'Semester 7', status: 'Upcoming', sgpa: null, credits: 24, cgpaAfterSem: null },
+        { id: 8, label: 'Semester 8', status: 'Upcoming', sgpa: null, credits: 24, cgpaAfterSem: null }
+      ]
+    };
 
-      // ── Subjects ──
-      addSubject: (subject) => {
-        const id = generateId();
-        const newSubject = { id, createdAt: new Date().toISOString(), ...subject };
-        set((state) => ({ subjects: [...state.subjects, newSubject] }));
-        return id;
-      },
-      updateSubject: (id, updates) => set((state) => ({
-        subjects: state.subjects.map((s) => s.id === id ? { ...s, ...updates } : s),
-      })),
-      deleteSubject: (id) => set((state) => ({
-        subjects: state.subjects.filter((s) => s.id !== id),
-        exams: state.exams.filter((e) => e.subjectId !== id),
-        assignments: state.assignments.filter((a) => a.subjectId !== id),
-        attendance: state.attendance.filter((a) => a.subjectId !== id),
-      })),
-      getSubjectsBySemester: (sem) => get().subjects.filter((s) => s.semester === sem),
+    set({ 
+      academicProfile: { ...get().academicProfile, ...mockResponse.profile },
+      semesters: mockResponse.semesters,
+      isLoading: false 
+    });
 
-      // ── Exams ──
-      addExam: (exam) => {
-        const id = generateId();
-        set((state) => ({ exams: [...state.exams, { id, createdAt: new Date().toISOString(), ...exam }] }));
-        return id;
-      },
-      updateExam: (id, updates) => set((state) => ({
-        exams: state.exams.map((e) => e.id === id ? { ...e, ...updates } : e),
-      })),
-      deleteExam: (id) => set((state) => ({
-        exams: state.exams.filter((e) => e.id !== id),
-      })),
+    const { activeEmail } = get();
+    if (activeEmail) {
+      await setDoc(doc(db, 'users', activeEmail, 'academicMeta', 'global'), mockResponse, { merge: true });
+    }
+  },
 
-      // ── Assignments ──
-      addAssignment: (assignment) => {
-        const id = generateId();
-        set((state) => ({ assignments: [...state.assignments, { id, createdAt: new Date().toISOString(), ...assignment }] }));
-        return id;
-      },
-      updateAssignment: (id, updates) => set((state) => ({
-        assignments: state.assignments.map((a) => a.id === id ? { ...a, ...updates } : a),
-      })),
-      deleteAssignment: (id) => set((state) => ({
-        assignments: state.assignments.filter((a) => a.id !== id),
-      })),
+  addSubject: async (data) => {
+    const { activeEmail } = get();
+    if (!activeEmail) return;
+    return await addDoc(collection(db, 'users', activeEmail, 'subjects'), {
+      ...data,
+      createdAt: serverTimestamp(),
+      marks: { midsem: { scored: 0, max: 30 }, endsem: { scored: 0, max: 50 }, quiz: { scored: 0, max: 15 }, ta: { scored: 0, max: 5 } },
+      attendance: []
+    });
+  },
 
-      // ── Attendance ──
-      addAttendance: (record) => {
-        const id = generateId();
-        set((state) => ({ attendance: [...state.attendance, { id, createdAt: new Date().toISOString(), ...record }] }));
-        return id;
-      },
-      updateAttendance: (id, updates) => set((state) => ({
-        attendance: state.attendance.map((a) => a.id === id ? { ...a, ...updates } : a),
-      })),
-      deleteAttendance: (id) => set((state) => ({
-        attendance: state.attendance.filter((a) => a.id !== id),
-      })),
+  updateSubjectMarks: async (id, marks) => {
+    const { activeEmail } = get();
+    if (!activeEmail) return;
+    await updateDoc(doc(db, 'users', activeEmail, 'subjects', id), { marks });
+  },
 
-      markAttendance: (subjectId, date, status) => {
-        const existing = get().attendance.find(
-          (a) => a.subjectId === subjectId && a.date === date
-        );
-        if (existing) {
-          set((state) => ({
-            attendance: state.attendance.map((a) =>
-              a.id === existing.id ? { ...a, status } : a
-            ),
-          }));
-        } else {
-          const id = generateId();
-          set((state) => ({
-            attendance: [...state.attendance, { id, subjectId, date, status, createdAt: new Date().toISOString() }],
-          }));
-        }
-      },
+  updateTopic: async (id, updates) => {
+    const { activeEmail } = get();
+    if (!activeEmail) return;
+    await updateDoc(doc(db, 'users', activeEmail, 'topics', id), updates);
+  },
 
-      getAttendanceStats: (subjectId) => {
-        const records = get().attendance.filter((a) => a.subjectId === subjectId);
-        const present = records.filter((r) => r.status === 'present').length;
-        const total = records.length;
-        return { present, absent: total - present, total, percentage: total ? Math.round((present / total) * 100) : 0 };
-      },
+  addTopic: async (data) => {
+    const { activeEmail } = get();
+    if (!activeEmail) return;
+    await addDoc(collection(db, 'users', activeEmail, 'topics'), {
+      ...data,
+      masteryLevel: 0,
+      status: 'pending',
+      createdAt: serverTimestamp()
+    });
+  },
 
-      // ── Timetable ──
-      addTimetableSlot: (slot) => {
-        const id = generateId();
-        set((state) => ({ timetable: [...state.timetable, { id, ...slot }] }));
-      },
-      deleteTimetableSlot: (id) => set((state) => ({
-        timetable: state.timetable.filter((s) => s.id !== id),
-      })),
-
-      // ── Study Sessions ──
-      addStudySession: (session) => {
-        const id = generateId();
-        set((state) => ({ studySessions: [...state.studySessions, { id, createdAt: new Date().toISOString(), ...session }] }));
-      },
-    }),
-    { name: 'academic-store' }
-  )
-);
+  // ── Global Selectors ──
+  getAllPendingAssignments: () => {
+    return get().subjects.flatMap(s => 
+      (s.assignments || [])
+        .filter(a => a.status !== 'completed')
+        .map(a => ({ ...a, subjectId: s.id, subjectName: s.name }))
+    );
+  }
+}));
